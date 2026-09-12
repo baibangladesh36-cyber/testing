@@ -17,7 +17,7 @@
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inbox - Gmail IMAP Tester</title>
+  <title>Temp-Mail & Live Catch - Gmail IMAP Tester</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -37,43 +37,70 @@
       }
     }
   </script>
+  <style>
+    @keyframes arrivalGlow {
+      0% {
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.5), 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+        border-color: #10b981;
+        transform: translateY(-2px);
+      }
+      60% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+        border-color: #10b981;
+      }
+      100% {
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        border-color: #e2e8f0;
+        transform: translateY(0);
+      }
+    }
+    .animate-arrival {
+      animation: arrivalGlow 2.5s ease-out;
+    }
+    .radar-pulse {
+      animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
 
   <!-- Top Navigation Bar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-          M
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          ⚡
         </div>
         <div>
-          <h1 class="font-semibold text-slate-900 text-base leading-tight">Gmail IMAP Tester</h1>
-          <p class="text-xs text-slate-500">ImapFlow & Express Test Client</p>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-slate-900 text-base leading-tight">Temp-Mail Live Catch</h1>
+            <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200">Live IMAP</span>
+          </div>
+          <p class="text-xs text-slate-500">Fast disposable inbox &amp; instant OTP detection</p>
         </div>
       </div>
 
       <!-- Navigation & Status -->
       <div class="flex items-center space-x-2 sm:space-x-3">
         <!-- Account Status Pill -->
-        <div id="header-status-pill" class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+        <div id="header-status-pill" class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
           <span class="w-2 h-2 rounded-full bg-slate-400 mr-1.5" id="header-status-dot"></span>
-          <span id="header-account-text" class="max-w-[150px] truncate">Checking...</span>
+          <span id="header-account-text" class="max-w-[170px] truncate font-mono text-[11px]">Checking...</span>
         </div>
 
         <nav class="flex items-center space-x-1">
-          <a href="/" id="nav-inbox-link" class="px-3 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-700 font-semibold flex items-center gap-1.5 border border-blue-200/60">
+          <a href="/" id="nav-inbox-link" class="px-3 py-2 text-sm font-medium rounded-lg bg-blue-50 text-blue-700 font-semibold flex items-center gap-1.5 border border-blue-200/60">
             <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
             </svg>
-            <span>Inbox</span>
+            <span>Temp Inbox</span>
           </a>
-          <a href="/admin" id="nav-admin-link" class="px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/admin" id="nav-admin-link" class="px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
-            <span>Admin Setup</span>
+            <span>Config / Admin</span>
           </a>
         </nav>
       </div>
@@ -81,18 +108,118 @@
   </header>
 
   <!-- Main Content Container -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-8 sm:px-6">
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:px-6">
 
-    <!-- Top Action Bar -->
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <div class="flex items-center gap-2">
-          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Inbox</h2>
-          <span id="email-count-badge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 text-slate-700">
-            0 emails
-          </span>
+    <!-- Temp-Mail Address & Copy Bar (Prominent Display) -->
+    <section id="temp-mail-hero" class="mb-6 bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+              Disposable Test Address
+            </span>
+            <span class="text-xs text-slate-500">Copy to start live catching</span>
+          </div>
+          <!-- Current Email Address Display -->
+          <div class="flex items-center gap-2 mt-1">
+            <div id="email-address-display" class="font-mono text-base sm:text-xl font-bold text-slate-900 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-xl select-all break-all">
+              Loading address...
+            </div>
+          </div>
+          <p class="text-xs text-slate-500 mt-2">
+            Clicking <strong>Copy Email</strong> copies this address, resets the inbox, and automatically begins listening for newly arrived emails.
+          </p>
         </div>
-        <p class="text-sm text-slate-600 mt-1">Real-time emails fetched from your Gmail account via ImapFlow.</p>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
+          <!-- Primary "Copy Email" Button with Timestamp Trigger -->
+          <button 
+            type="button" 
+            id="copy-email-btn"
+            class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all shadow-sm hover:shadow flex items-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+            </svg>
+            <span id="copy-btn-label">Copy Email</span>
+          </button>
+
+          <!-- Reset / Start Over Button -->
+          <button 
+            type="button" 
+            id="reset-btn"
+            class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-medium rounded-xl text-sm transition-colors flex items-center gap-1.5 cursor-pointer"
+            title="Reset active live listener and clear current view"
+          >
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>Reset / Start Over</span>
+          </button>
+
+          <!-- Sound alert toggle -->
+          <button 
+            type="button" 
+            id="sound-toggle-btn"
+            class="px-3 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-xl text-sm transition-colors flex items-center gap-1.5 cursor-pointer"
+            title="Toggle arrival chime sound"
+          >
+            <span id="sound-icon">🔔</span>
+            <span id="sound-label" class="text-xs font-medium hidden sm:inline">Sound ON</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Catch Active Status Banner -->
+      <div id="live-catch-status-banner" class="hidden mt-4 pt-4 border-t border-slate-100">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl px-4 py-3">
+          <div class="flex items-center gap-3">
+            <!-- Pulsing radar dot -->
+            <span class="relative flex h-3.5 w-3.5">
+              <span class="radar-pulse absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-600"></span>
+            </span>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-bold text-emerald-900" id="live-status-heading">Listening for new emails...</span>
+                <span class="text-xs text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full font-medium" id="live-timer-text">Started just now</span>
+              </div>
+              <p class="text-xs text-emerald-800/80 mt-0.5">
+                Checking IMAP every 3 seconds for emails received after <span id="live-timestamp-label" class="font-mono font-medium"></span>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Spinner and Manual Check -->
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="inline-flex items-center text-xs font-medium text-emerald-800 gap-1.5">
+              <svg class="animate-spin w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span id="poll-indicator">Polling live...</span>
+            </span>
+
+            <button 
+              type="button" 
+              id="view-all-btn"
+              class="text-xs text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 border border-blue-200 px-2.5 py-1.5 rounded-lg transition-colors font-medium ml-1"
+            >
+              View All Emails
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Action Bar & Filter for Messages -->
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <h2 class="text-lg font-bold text-slate-900" id="inbox-section-title">Incoming Messages</h2>
+        <span id="email-count-badge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 text-slate-700">
+          0 emails
+        </span>
       </div>
 
       <div class="flex items-center gap-2.5">
@@ -101,30 +228,31 @@
           <input 
             type="text" 
             id="filter-input" 
-            placeholder="Filter emails..." 
-            class="w-44 sm:w-56 px-3 py-2 pl-8 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400 text-slate-800"
+            placeholder="Search sender, code, subject..." 
+            class="w-52 sm:w-64 px-3 py-1.5 pl-8 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400 text-slate-800"
           />
           <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
           </svg>
         </div>
 
-        <!-- Refresh / Fetch New Emails Button -->
+        <!-- Manual Refresh Button -->
         <button 
           type="button" 
           id="refresh-btn"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+          class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium px-3 py-1.5 rounded-lg text-xs transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-60 shrink-0"
+          title="Manually check IMAP now"
         >
-          <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg id="refresh-icon" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
-          <span id="refresh-btn-text">Refresh / Fetch New Emails</span>
+          <span id="refresh-btn-text">Check Now</span>
         </button>
       </div>
     </div>
 
     <!-- Alert / Status Banner -->
-    <div id="inbox-alert" class="hidden mb-6 p-4 rounded-lg border text-sm transition-all"></div>
+    <div id="inbox-alert" class="hidden mb-6 p-4 rounded-xl border text-sm transition-all"></div>
 
     <!-- Unconfigured State Screen -->
     <div id="unconfigured-state" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center shadow-sm">
@@ -133,20 +261,43 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
         </svg>
       </div>
-      <h3 class="text-lg font-bold text-slate-900 mb-1">No Gmail Account Configured</h3>
+      <h3 class="text-lg font-bold text-slate-900 mb-1">Gmail IMAP Not Configured</h3>
       <p class="text-slate-600 text-sm max-w-md mx-auto mb-6">
-        Please configure your Gmail address and 16-character App Password on the admin page to start receiving live emails.
+        Please configure your Gmail address and 16-character Google App Password on the admin page to enable Temp-Mail live catching.
       </p>
       <a 
         href="/admin" 
-        class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
         </svg>
-        <span>Configure Gmail Credentials</span>
+        <span>Open Admin Configuration</span>
       </a>
+    </div>
+
+    <!-- Live Catch Radar Waiting State (When listening and no emails yet) -->
+    <div id="radar-waiting-state" class="hidden bg-white border border-emerald-200 rounded-2xl p-10 text-center shadow-sm">
+      <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+        <span class="radar-pulse absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-60"></span>
+        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center border-2 border-emerald-300 relative z-10 shadow-sm">
+          <svg class="w-7 h-7 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-1">Waiting for incoming email...</h3>
+      <p class="text-slate-600 text-sm max-w-md mx-auto mb-4">
+        We copied your address to the clipboard. As soon as your verification or test email arrives, it will pop up right here with audio chime and instant OTP highlight.
+      </p>
+      <div class="inline-flex items-center gap-2 text-xs font-mono bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-600">
+        <svg class="animate-spin w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span>Live polling active (checks every 3s)</span>
+      </div>
     </div>
 
     <!-- Loading Skeleton State -->
@@ -159,38 +310,29 @@
         <div class="h-5 bg-slate-200 rounded w-3/4"></div>
         <div class="h-3 bg-slate-200 rounded w-full"></div>
       </div>
-      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm animate-pulse space-y-3">
-        <div class="flex justify-between items-center">
-          <div class="h-4 bg-slate-200 rounded w-1/3"></div>
-          <div class="h-3 bg-slate-200 rounded w-28"></div>
-        </div>
-        <div class="h-5 bg-slate-200 rounded w-1/2"></div>
-        <div class="h-3 bg-slate-200 rounded w-5/6"></div>
-      </div>
-      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm animate-pulse space-y-3">
-        <div class="flex justify-between items-center">
-          <div class="h-4 bg-slate-200 rounded w-1/4"></div>
-          <div class="h-3 bg-slate-200 rounded w-20"></div>
-        </div>
-        <div class="h-5 bg-slate-200 rounded w-2/3"></div>
-        <div class="h-3 bg-slate-200 rounded w-4/5"></div>
-      </div>
       <div class="text-center py-2 text-xs text-slate-500 font-medium">
-        Connecting to Gmail IMAP and fetching messages...
+        Connecting to Gmail IMAP server and checking messages...
       </div>
     </div>
 
-    <!-- Empty Inbox State -->
+    <!-- Empty Inbox State (Standard mode) -->
     <div id="empty-state" class="hidden bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm">
       <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-3 text-slate-400">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
         </svg>
       </div>
-      <h3 class="text-base font-semibold text-slate-900 mb-1">Inbox is Empty</h3>
-      <p class="text-slate-500 text-xs max-w-sm mx-auto">
-        No emails found in the INBOX folder. Send a test email to your Gmail address and click "Refresh".
+      <h3 class="text-base font-semibold text-slate-900 mb-1">No Emails Found</h3>
+      <p class="text-slate-500 text-xs max-w-sm mx-auto mb-4">
+        No emails were received in this window. Click "Copy Email" to start live catch or "View All Emails" to see your past inbox.
       </p>
+      <button 
+        type="button" 
+        onclick="fetchAllEmails()" 
+        class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+      >
+        <span>Fetch All Past Inbox Emails</span>
+      </button>
     </div>
 
     <!-- Email List Container -->
@@ -198,15 +340,44 @@
 
   </main>
 
+  <!-- Notification Toast Popup -->
+  <div id="toast-notification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-slate-700 text-sm">
+      <span id="toast-icon" class="text-emerald-400 text-lg">⚡</span>
+      <span id="toast-message" class="font-medium">Notification</span>
+    </div>
+  </div>
+
   <!-- Footer -->
   <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500 mt-auto">
-    Gmail IMAP Testing Application &bull; Powered by Express, ImapFlow &amp; Mailparser
+    Temp-Mail Live Catch &bull; Gmail IMAP Testing Application &bull; ImapFlow + Express
   </footer>
 
   <!-- Page Script -->
   <script>
+    let currentConfigUser = '';
     let fetchedEmails = [];
     let isConfigured = false;
+    let liveSinceTimestamp = null;
+    let livePollInterval = null;
+    let elapsedTimerInterval = null;
+    let soundEnabled = true;
+    let knownEmailUids = new Set();
+
+    const emailAddressDisplay = document.getElementById('email-address-display');
+    const copyEmailBtn = document.getElementById('copy-email-btn');
+    const copyBtnLabel = document.getElementById('copy-btn-label');
+    const resetBtn = document.getElementById('reset-btn');
+    const soundToggleBtn = document.getElementById('sound-toggle-btn');
+    const soundIcon = document.getElementById('sound-icon');
+    const soundLabel = document.getElementById('sound-label');
+
+    const liveCatchBanner = document.getElementById('live-catch-status-banner');
+    const liveStatusHeading = document.getElementById('live-status-heading');
+    const liveTimerText = document.getElementById('live-timer-text');
+    const liveTimestampLabel = document.getElementById('live-timestamp-label');
+    const radarWaitingState = document.getElementById('radar-waiting-state');
+    const viewAllBtn = document.getElementById('view-all-btn');
 
     const emailList = document.getElementById('email-list');
     const loadingState = document.getElementById('loading-state');
@@ -218,13 +389,83 @@
     const refreshBtnText = document.getElementById('refresh-btn-text');
     const emailCountBadge = document.getElementById('email-count-badge');
     const filterInput = document.getElementById('filter-input');
+    const inboxSectionTitle = document.getElementById('inbox-section-title');
 
     const headerStatusPill = document.getElementById('header-status-pill');
     const headerStatusDot = document.getElementById('header-status-dot');
     const headerAccountText = document.getElementById('header-account-text');
 
+    const toast = document.getElementById('toast-notification');
+    const toastMessage = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+
+    // Show temporary toast message
+    function showToast(msg, icon = '⚡') {
+      toastMessage.textContent = msg;
+      toastIcon.textContent = icon;
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
+
+    // Audio chime generator using Web Audio API
+    function playNotificationChime() {
+      if (!soundEnabled) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const ctx = new AudioContextClass();
+        const now = ctx.currentTime;
+
+        // First chime note: 659.25 Hz (E5)
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(659.25, now);
+        gain1.gain.setValueAtTime(0.18, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.35);
+
+        // Second melodic note: 880.0 Hz (A5)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880.0, now + 0.12);
+        gain2.gain.setValueAtTime(0.22, now + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.12);
+        osc2.stop(now + 0.55);
+      } catch (err) {
+        console.warn('Audio chime warning:', err);
+      }
+    }
+
+    // Sound toggle button
+    soundToggleBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      if (soundEnabled) {
+        soundIcon.textContent = '🔔';
+        soundLabel.textContent = 'Sound ON';
+        playNotificationChime();
+        showToast('Notification sound enabled', '🔔');
+      } else {
+        soundIcon.textContent = '🔕';
+        soundLabel.textContent = 'Sound OFF';
+        showToast('Notification sound muted', '🔕');
+      }
+    });
+
     function showAlert(msg, type = 'error') {
-      alertBox.className = 'mb-6 p-4 rounded-lg border text-sm transition-all block ';
+      alertBox.className = 'mb-6 p-4 rounded-xl border text-sm transition-all block ';
       if (type === 'success') {
         alertBox.className += 'bg-emerald-50 border-emerald-200 text-emerald-800';
       } else if (type === 'warning') {
@@ -240,22 +481,22 @@
       alertBox.innerHTML = '';
     }
 
-    // Format date nicely: relative (e.g. 5m ago) + exact local string
+    // Format date nicely
     function formatDate(isoStr) {
-      if (!isoStr) return 'Unknown date';
+      if (!isoStr) return { relative: 'Unknown', exact: '' };
       try {
         const d = new Date(isoStr);
         const now = new Date();
-        const diffMs = now - d;
-        const diffMins = Math.floor(diffMs / (1000 * 60));
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffMs = Math.max(0, now - d);
+        const diffSecs = Math.floor(diffMs / 1000);
+        const diffMins = Math.floor(diffSecs / 60);
+        const diffHours = Math.floor(diffMins / 60);
 
         let relative = '';
-        if (diffMins < 1) relative = 'Just now';
+        if (diffSecs < 10) relative = 'Just now';
+        else if (diffSecs < 60) relative = `${diffSecs}s ago`;
         else if (diffMins < 60) relative = `${diffMins}m ago`;
         else if (diffHours < 24) relative = `${diffHours}h ago`;
-        else if (diffDays < 7) relative = `${diffDays}d ago`;
         else relative = d.toLocaleDateString();
 
         const exact = d.toLocaleString([], {
@@ -263,7 +504,8 @@
           day: 'numeric',
           year: 'numeric',
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
+          second: '2-digit'
         });
 
         return { relative, exact };
@@ -272,24 +514,77 @@
       }
     }
 
+    // Copy helper
+    window.copyToClipboard = async function(text, btnElement) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+
+        if (btnElement) {
+          const original = btnElement.innerHTML;
+          btnElement.innerHTML = `<svg class="w-3.5 h-3.5 text-emerald-600 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied!`;
+          setTimeout(() => {
+            btnElement.innerHTML = original;
+          }, 1800);
+        }
+        showToast(`Copied "${text}" to clipboard`, '📋');
+      } catch (err) {
+        prompt('Copy to clipboard:', text);
+      }
+    };
+
     // Render single email card
-    function renderEmailCard(email, index) {
+    function renderEmailCard(email, index, isNewArrival = false) {
       const dateInfo = formatDate(email.date);
       const card = document.createElement('article');
-      card.className = 'bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow transition-shadow';
-      card.id = `email-card-${index}`;
+      card.className = `bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all ${isNewArrival ? 'animate-arrival' : ''}`;
+      card.id = `email-card-${email.uid || index}`;
 
-      const cardId = `email-body-${index}`;
+      const cardId = `email-body-${email.uid || index}`;
+
+      // OTP section if present
+      const otpBlock = email.otp ? `
+        <div class="mt-3 mb-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300/80 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 border border-amber-300">
+              🔑 OTP / Verification Code
+            </span>
+            <span class="font-mono text-xl sm:text-2xl font-extrabold text-slate-900 tracking-widest bg-white px-3 py-0.5 rounded-lg border border-amber-200 shadow-2xs select-all">
+              ${escapeHtml(email.otp)}
+            </span>
+          </div>
+          <button 
+            type="button"
+            onclick="copyToClipboard('${escapeHtml(email.otp)}', this)" 
+            class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-semibold text-xs rounded-lg shadow-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+            </svg>
+            <span>Copy Code</span>
+          </button>
+        </div>
+      ` : '';
 
       card.innerHTML = `
         <div class="flex items-start justify-between gap-3 mb-2">
           <!-- 1. Sender (From) -->
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
-                #${index + 1}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${isNewArrival ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-800 border border-slate-200'}">
+                ${isNewArrival ? '⚡ NEW ARRIVAL' : `#${index + 1}`}
               </span>
-              <span class="font-semibold text-slate-900 text-sm truncate" title="${escapeHtml(email.from)}">
+              <span class="font-bold text-slate-900 text-sm sm:text-base truncate" title="${escapeHtml(email.from)}">
                 ${escapeHtml(email.from)}
               </span>
               ${email.fromAddress ? `<span class="text-xs text-slate-500 font-mono hidden sm:inline">&lt;${escapeHtml(email.fromAddress)}&gt;</span>` : ''}
@@ -298,42 +593,45 @@
 
           <!-- 3. Date & Time -->
           <div class="text-right shrink-0">
-            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 inline-block">
+            <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200 inline-block">
               ${escapeHtml(dateInfo.relative)}
             </span>
-            <div class="text-[11px] text-slate-400 mt-1 hidden sm:block">
+            <div class="text-[11px] text-slate-400 mt-1 font-mono hidden sm:block">
               ${escapeHtml(dateInfo.exact)}
             </div>
           </div>
         </div>
 
         <!-- 2. Subject -->
-        <h3 class="text-base font-bold text-slate-900 mb-2 leading-snug break-words">
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1 leading-snug break-words">
           ${escapeHtml(email.subject || '(No Subject)')}
         </h3>
 
+        <!-- Prominent OTP Banner if detected -->
+        ${otpBlock}
+
         <!-- 4. Email Body (Text / Snippet) -->
-        <div class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 break-words font-sans">
+        <div class="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100 break-words font-sans mt-2">
           <div id="${cardId}-snippet" class="whitespace-pre-line">
             ${escapeHtml(email.snippet || '(Empty email body)')}
           </div>
 
-          <!-- Expanded full body (hidden by default) -->
+          <!-- Expanded full body -->
           <div id="${cardId}-full" class="hidden mt-3 pt-3 border-t border-slate-200 text-slate-800">
-            <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Message Content:</h4>
-            <div class="max-h-96 overflow-y-auto bg-white p-3 rounded border border-slate-200 whitespace-pre-wrap font-mono text-xs">
+            <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Message Body:</h4>
+            <div class="max-h-96 overflow-y-auto bg-white p-3 rounded-lg border border-slate-200 whitespace-pre-wrap font-mono text-xs">
               ${escapeHtml(email.bodyText || email.snippet || '(No text content)')}
             </div>
           </div>
 
           <!-- Expand / Collapse Button -->
-          <div class="mt-2 flex items-center justify-between text-[11px]">
-            <span class="text-slate-400">UID: ${email.uid || 'N/A'}</span>
+          <div class="mt-2.5 flex items-center justify-between text-[11px] pt-1">
+            <span class="text-slate-400 font-mono">UID: ${email.uid || 'N/A'}</span>
             <button 
               type="button" 
               onclick="toggleEmailBody('${cardId}')" 
               id="${cardId}-btn"
-              class="text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+              class="text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
             >
               Expand Full Message &darr;
             </button>
@@ -367,7 +665,7 @@
         .replace(/'/g, '&#039;');
     }
 
-    // Render list with optional filter
+    // Render list with search filtering
     function renderList() {
       const query = (filterInput.value || '').trim().toLowerCase();
       emailList.innerHTML = '';
@@ -376,36 +674,182 @@
         ? fetchedEmails.filter(e => 
             (e.subject && e.subject.toLowerCase().includes(query)) ||
             (e.from && e.from.toLowerCase().includes(query)) ||
-            (e.snippet && e.snippet.toLowerCase().includes(query))
+            (e.snippet && e.snippet.toLowerCase().includes(query)) ||
+            (e.otp && e.otp.toLowerCase().includes(query))
           )
         : fetchedEmails;
 
       if (filtered.length === 0) {
-        if (fetchedEmails.length === 0) {
-          emptyState.classList.remove('hidden');
+        if (liveSinceTimestamp) {
+          radarWaitingState.classList.remove('hidden');
+          emptyState.classList.add('hidden');
         } else {
+          radarWaitingState.classList.add('hidden');
           emptyState.classList.remove('hidden');
-          emptyState.querySelector('h3').textContent = 'No matching emails';
-          emptyState.querySelector('p').textContent = `No messages match your search term "${query}".`;
         }
         return;
       }
 
+      radarWaitingState.classList.add('hidden');
       emptyState.classList.add('hidden');
+
       filtered.forEach((email, idx) => {
-        emailList.appendChild(renderEmailCard(email, idx));
+        const isFresh = knownEmailUids.has(email.uid);
+        emailList.appendChild(renderEmailCard(email, idx, isFresh));
       });
     }
 
     filterInput.addEventListener('input', renderList);
 
-    // Fetch emails from API
-    async function fetchEmails() {
+    // Update elapsed timer label: e.g. "Started 8s ago"
+    function updateElapsedTimer() {
+      if (!liveSinceTimestamp) return;
+      const elapsedSec = Math.floor((Date.now() - liveSinceTimestamp) / 1000);
+      if (elapsedSec < 3) {
+        liveTimerText.textContent = 'Started just now';
+      } else if (elapsedSec < 60) {
+        liveTimerText.textContent = `Started ${elapsedSec}s ago`;
+      } else {
+        const mins = Math.floor(elapsedSec / 60);
+        const remSec = elapsedSec % 60;
+        liveTimerText.textContent = `Started ${mins}m ${remSec}s ago`;
+      }
+    }
+
+    // Poll backend for new emails arriving since timestamp
+    async function pollLiveEmails() {
+      if (!liveSinceTimestamp) return;
+
+      refreshIcon.classList.add('animate-spin');
+
+      try {
+        const res = await fetch(`/api/emails?since=${liveSinceTimestamp}`);
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          const freshEmails = data.emails || [];
+
+          // Check if any fresh emails arrived
+          let hasBrandNew = false;
+          freshEmails.forEach(e => {
+            if (!knownEmailUids.has(e.uid)) {
+              knownEmailUids.add(e.uid);
+              hasBrandNew = true;
+            }
+          });
+
+          if (hasBrandNew) {
+            playNotificationChime();
+            showToast(`New email received! (${freshEmails.length} fresh message${freshEmails.length === 1 ? '' : 's'})`, '📩');
+            liveStatusHeading.textContent = `🎉 Received ${freshEmails.length} fresh email(s)! Listening for more...`;
+          }
+
+          fetchedEmails = freshEmails;
+          emailCountBadge.textContent = `${fetchedEmails.length} new email${fetchedEmails.length === 1 ? '' : 's'}`;
+          emailCountBadge.classList.remove('hidden');
+
+          renderList();
+        } else {
+          if (data.configured === false) {
+            stopLiveCatch();
+            unconfiguredState.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        console.warn('Poll error:', err);
+      } finally {
+        refreshIcon.classList.remove('animate-spin');
+      }
+    }
+
+    // Start Live Catch Mode
+    function startLiveCatch(customTimestamp = null) {
+      liveSinceTimestamp = customTimestamp || Date.now();
+      knownEmailUids.clear();
+      fetchedEmails = [];
+      emailList.innerHTML = '';
+      hideAlert();
+
+      // UI state updates
+      liveCatchBanner.classList.remove('hidden');
+      radarWaitingState.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      unconfiguredState.classList.add('hidden');
+      inboxSectionTitle.textContent = 'Live Caught Messages';
+      emailCountBadge.textContent = '0 emails';
+      emailCountBadge.classList.remove('hidden');
+
+      const dateObj = new Date(liveSinceTimestamp);
+      liveTimestampLabel.textContent = dateObj.toLocaleTimeString();
+      liveStatusHeading.textContent = 'Listening for new emails...';
+      liveTimerText.textContent = 'Started just now';
+
+      // Start elapsed timer (updates every 1s)
+      clearInterval(elapsedTimerInterval);
+      elapsedTimerInterval = setInterval(updateElapsedTimer, 1000);
+
+      // Start 3-second polling interval
+      clearInterval(livePollInterval);
+      pollLiveEmails(); // execute immediately
+      livePollInterval = setInterval(pollLiveEmails, 3000);
+    }
+
+    // Stop Live Catch Mode
+    function stopLiveCatch() {
+      clearInterval(livePollInterval);
+      clearInterval(elapsedTimerInterval);
+      livePollInterval = null;
+      elapsedTimerInterval = null;
+      liveSinceTimestamp = null;
+
+      liveCatchBanner.classList.add('hidden');
+      radarWaitingState.classList.add('hidden');
+      inboxSectionTitle.textContent = 'Incoming Messages';
+    }
+
+    // "Copy Email" Button Workflow:
+    // a) Copy to clipboard
+    // b) Record timestamp
+    // c) Clear all old messages from UI
+    // d) Display pulsing status badge
+    // e) Start polling every 3 seconds
+    copyEmailBtn.addEventListener('click', async () => {
+      if (!currentConfigUser) {
+        showAlert('Please configure your Gmail account at <a href="/admin" class="underline font-bold">Admin Setup</a> first.', 'warning');
+        return;
+      }
+
+      // a) Copy email to clipboard
+      await copyToClipboard(currentConfigUser, copyEmailBtn);
+      copyBtnLabel.textContent = 'Copied & Catching!';
+      setTimeout(() => {
+        copyBtnLabel.textContent = 'Copy Email';
+      }, 2500);
+
+      // b, c, d, e) Trigger timestamp, clear UI, show pulsing badge, poll every 3s
+      startLiveCatch(Date.now());
+    });
+
+    // Reset / Start Over Button
+    resetBtn.addEventListener('click', () => {
+      stopLiveCatch();
+      fetchedEmails = [];
+      knownEmailUids.clear();
+      emailList.innerHTML = '';
+      emailCountBadge.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+      emptyState.querySelector('h3').textContent = 'Ready for Live Catch';
+      emptyState.querySelector('p').textContent = 'Click "Copy Email" above to copy the address and catch new incoming messages.';
+      showToast('Live listener reset. Ready to catch new emails.', '🔄');
+    });
+
+    // View All Emails (Fetches 10 latest without time filter)
+    window.fetchAllEmails = async function() {
+      stopLiveCatch();
       hideAlert();
       loadingState.classList.remove('hidden');
       emailList.innerHTML = '';
       emptyState.classList.add('hidden');
-      unconfiguredState.classList.add('hidden');
 
       refreshBtn.disabled = true;
       refreshIcon.classList.add('animate-spin');
@@ -417,44 +861,33 @@
 
         if (res.ok && data.success) {
           fetchedEmails = data.emails || [];
-          isConfigured = true;
-
+          knownEmailUids.clear();
+          inboxSectionTitle.textContent = 'All Recent Messages';
           emailCountBadge.textContent = `${fetchedEmails.length} latest email${fetchedEmails.length === 1 ? '' : 's'}`;
           emailCountBadge.classList.remove('hidden');
-
-          if (data.user) {
-            headerStatusPill.classList.remove('hidden');
-            headerStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse';
-            headerAccountText.textContent = data.user;
-          }
-
           renderList();
         } else {
-          if (data.configured === false) {
-            isConfigured = false;
-            unconfiguredState.classList.remove('hidden');
-            headerStatusPill.classList.add('hidden');
-          } else {
-            const errorMsg = data.error || 'Failed to fetch emails via IMAP.';
-            showAlert(`<strong>Error fetching emails:</strong> ${errorMsg} <div class="mt-2"><a href="/admin" class="underline font-medium text-rose-900">Check Admin Credentials &rarr;</a></div>`, 'error');
-            emptyState.classList.remove('hidden');
-            emptyState.querySelector('h3').textContent = 'Unable to fetch emails';
-            emptyState.querySelector('p').textContent = 'Please check your connection and configuration.';
-          }
+          showAlert(data.error || 'Failed to fetch emails.', 'error');
         }
-      } catch (err) {
-        showAlert(`<strong>Network Error:</strong> ${err.message}`, 'error');
-        emptyState.classList.remove('hidden');
+      } catch (e) {
+        showAlert(`Error: ${e.message}`, 'error');
       } finally {
         loadingState.classList.add('hidden');
         refreshBtn.disabled = false;
         refreshIcon.classList.remove('animate-spin');
-        refreshBtnText.textContent = 'Refresh / Fetch New Emails';
+        refreshBtnText.textContent = 'Check Now';
       }
-    }
+    };
 
+    viewAllBtn.addEventListener('click', fetchAllEmails);
+
+    // Manual Refresh button
     refreshBtn.addEventListener('click', () => {
-      fetchEmails();
+      if (liveSinceTimestamp) {
+        pollLiveEmails();
+      } else {
+        fetchAllEmails();
+      }
     });
 
     // Check config on initial page load
@@ -463,18 +896,29 @@
         const cfgRes = await fetch('/api/config');
         const cfg = await cfgRes.json();
 
-        if (cfg.configured) {
+        if (cfg.configured && cfg.user) {
+          isConfigured = true;
+          currentConfigUser = cfg.user;
+          emailAddressDisplay.textContent = cfg.user;
+
           headerStatusPill.classList.remove('hidden');
           headerAccountText.textContent = cfg.user;
           if (cfg.status === 'connected') {
             headerStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 mr-1.5';
           } else {
-            headerStatusDot.className = 'w-2 h-2 rounded-full bg-rose-500 mr-1.5';
+            headerStatusDot.className = 'w-2 h-2 rounded-full bg-amber-500 mr-1.5';
           }
-          fetchEmails();
+
+          unconfiguredState.classList.add('hidden');
+
+          // Fetch all emails initially to populate inbox
+          fetchAllEmails();
         } else {
+          isConfigured = false;
+          emailAddressDisplay.textContent = 'Not configured (Visit Admin)';
           unconfiguredState.classList.remove('hidden');
           headerStatusPill.classList.add('hidden');
+          copyEmailBtn.disabled = true;
         }
       } catch (e) {
         unconfiguredState.classList.remove('hidden');

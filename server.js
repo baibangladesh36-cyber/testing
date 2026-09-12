@@ -101,8 +101,29 @@ async function testImapConnection(cfg) {
   }
 }
 
-// Helper: Fetch latest emails using ImapFlow + mailparser
-async function fetchLatestEmails(limit = 10) {
+// Helper: Extract OTP/Verification code candidates from email text and subject
+function extractOtp(text, subject) {
+  const combined = `${subject || ''} ${text || ''}`;
+  // 1. Look for explicit keyword patterns (code is 123456, OTP: 1234, etc.)
+  const keywordMatch = combined.match(/(?:verification\s*code|security\s*code|confirmation\s*code|login\s*code|passcode|otp|pin|token)\s*(?:is|:|-|=|\s)\s*([0-9]{4,8})\b/i);
+  if (keywordMatch && keywordMatch[1]) {
+    return keywordMatch[1];
+  }
+  // 2. Look for standard 6-digit standalone numbers
+  const sixDigitMatch = combined.match(/\b([0-9]{6})\b/);
+  if (sixDigitMatch && sixDigitMatch[1]) {
+    return sixDigitMatch[1];
+  }
+  // 3. Look for 4 to 8 digit standalone numbers
+  const anyDigitMatch = combined.match(/\b([0-9]{4,8})\b/);
+  if (anyDigitMatch && anyDigitMatch[1]) {
+    return anyDigitMatch[1];
+  }
+  return null;
+}
+
+// Helper: Fetch latest emails using ImapFlow + mailparser (with optional time filter)
+async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
   if (!currentConfig.user || !currentConfig.pass) {
     throw new Error('IMAP credentials not configured. Please configure your Gmail account at /admin.');
   }
@@ -128,8 +149,9 @@ async function fetchLatestEmails(limit = 10) {
     const total = client.mailbox.exists || 0;
 
     if (total > 0) {
-      // Calculate sequence range for the latest messages
-      const startSeq = Math.max(1, total - limit + 1);
+      // When time-filtering, check a larger window of recent messages (up to 25)
+      const fetchCount = sinceTimestamp ? Math.max(limit, 25) : limit;
+      const startSeq = Math.max(1, total - fetchCount + 1);
       const range = `${startSeq}:${total}`;
 
       const rawMessages = [];
@@ -141,15 +163,26 @@ async function fetchLatestEmails(limit = 10) {
       // Newest messages first
       rawMessages.reverse();
 
+      const cutoffMs = sinceTimestamp ? (Number(sinceTimestamp) - 5000) : null;
+
       for (const msg of rawMessages) {
         try {
           const parsed = await simpleParser(msg.source);
+          const emailDate = parsed.date ? new Date(parsed.date) : (msg.internalDate ? new Date(msg.internalDate) : new Date());
+          const emailTimeMs = emailDate.getTime();
+
+          // If filtering by timestamp, discard emails received prior to the cutoff
+          if (cutoffMs && emailTimeMs < cutoffMs) {
+            continue;
+          }
+
           const fromText = parsed.from ? (parsed.from.text || parsed.from.value?.[0]?.name || parsed.from.value?.[0]?.address || 'Unknown') : (msg.envelope?.from?.[0]?.name || msg.envelope?.from?.[0]?.address || 'Unknown');
           const fromAddress = parsed.from?.value?.[0]?.address || msg.envelope?.from?.[0]?.address || '';
           const subject = parsed.subject || msg.envelope?.subject || '(No Subject)';
-          const date = parsed.date ? parsed.date.toISOString() : (msg.internalDate ? new Date(msg.internalDate).toISOString() : new Date().toISOString());
+          const date = emailDate.toISOString();
           const bodyText = (parsed.text || '').trim();
           const snippet = bodyText ? bodyText.slice(0, 220).replace(/\s+/g, ' ') : (parsed.html ? 'Contains HTML formatted content' : '(Empty body)');
+          const detectedOtp = extractOtp(bodyText, subject);
 
           emails.push({
             uid: msg.uid,
@@ -159,25 +192,48 @@ async function fetchLatestEmails(limit = 10) {
             to: parsed.to?.text || '',
             subject: subject,
             date: date,
+            timestampMs: emailTimeMs,
+            otp: detectedOtp,
             snippet: snippet,
             bodyText: bodyText || snippet,
             hasHtml: Boolean(parsed.html),
             html: parsed.html || null
           });
+
+          // Respect requested limit
+          if (!sinceTimestamp && emails.length >= limit) {
+            break;
+          }
         } catch (parseErr) {
+          const fallbackDate = msg.internalDate ? new Date(msg.internalDate) : new Date();
+          const fallbackTimeMs = fallbackDate.getTime();
+
+          if (cutoffMs && fallbackTimeMs < cutoffMs) {
+            continue;
+          }
+
+          const sub = msg.envelope?.subject || '(No Subject)';
+          const detectedOtp = extractOtp('', sub);
+
           emails.push({
             uid: msg.uid,
             seq: msg.seq,
             from: msg.envelope?.from?.[0]?.name || msg.envelope?.from?.[0]?.address || 'Unknown',
             fromAddress: msg.envelope?.from?.[0]?.address || '',
             to: '',
-            subject: msg.envelope?.subject || '(No Subject)',
-            date: msg.internalDate ? new Date(msg.internalDate).toISOString() : new Date().toISOString(),
+            subject: sub,
+            date: fallbackDate.toISOString(),
+            timestampMs: fallbackTimeMs,
+            otp: detectedOtp,
             snippet: '(Unable to parse message body)',
             bodyText: '(Parse error)',
             hasHtml: false,
             html: null
           });
+
+          if (!sinceTimestamp && emails.length >= limit) {
+            break;
+          }
         }
       }
     }
@@ -351,8 +407,15 @@ app.get('/api/emails', async (req, res) => {
 
   try {
     const limit = parseInt(req.query.limit, 10) || 10;
-    console.log(`[IMAP] Fetching latest ${limit} emails for ${currentConfig.user}...`);
-    const emails = await fetchLatestEmails(limit);
+    const since = req.query.since ? parseInt(req.query.since, 10) : null;
+    
+    if (since) {
+      console.log(`[IMAP] Live Catch: Fetching new emails since ${new Date(since).toISOString()} (${since}) for ${currentConfig.user}...`);
+    } else {
+      console.log(`[IMAP] Fetching latest ${limit} emails for ${currentConfig.user}...`);
+    }
+
+    const emails = await fetchLatestEmails(limit, since);
     connectionState.status = 'connected';
     connectionState.lastChecked = new Date().toISOString();
     connectionState.lastError = null;
@@ -362,6 +425,8 @@ app.get('/api/emails', async (req, res) => {
       count: emails.length,
       user: currentConfig.user,
       host: currentConfig.host,
+      since: since || null,
+      serverTime: Date.now(),
       emails
     });
   } catch (err) {

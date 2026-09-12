@@ -1,6 +1,6 @@
 {
   "name": "Gmail IMAP Tester",
-  "description": "Minimal Node.js and Express full-stack application using ImapFlow and Mailparser to test and receive Gmail emails.",
+  "description": "Temp-Mail style Gmail IMAP testing web application featuring Copy & Live Catch, real-time 3-second polling, timestamp filtering, and instant OTP extraction.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
