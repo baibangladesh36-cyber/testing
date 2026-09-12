@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    // Safeguard window.fetch to ensure it is writable and configurable in iframe environments
+    (function() {
+      try {
+        var _fetch = window.fetch;
+        Object.defineProperty(window, 'fetch', {
+          get: function() { return _fetch; },
+          set: function(fn) { _fetch = fn; },
+          configurable: true,
+          enumerable: true
+        });
+      } catch (err) {}
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inbox - Gmail IMAP Tester</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          M
+        </div>
+        <div>
+          <h1 class="font-semibold text-slate-900 text-base leading-tight">Gmail IMAP Tester</h1>
+          <p class="text-xs text-slate-500">ImapFlow & Express Test Client</p>
+        </div>
+      </div>
+
+      <!-- Navigation & Status -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- Account Status Pill -->
+        <div id="header-status-pill" class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-slate-400 mr-1.5" id="header-status-dot"></span>
+          <span id="header-account-text" class="max-w-[150px] truncate">Checking...</span>
+        </div>
+
+        <nav class="flex items-center space-x-1">
+          <a href="/" id="nav-inbox-link" class="px-3 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-700 font-semibold flex items-center gap-1.5 border border-blue-200/60">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+            <span>Inbox</span>
+          </a>
+          <a href="/admin" id="nav-admin-link" class="px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span>Admin Setup</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-8 sm:px-6">
+
+    <!-- Top Action Bar -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Inbox</h2>
+          <span id="email-count-badge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 text-slate-700">
+            0 emails
+          </span>
+        </div>
+        <p class="text-sm text-slate-600 mt-1">Real-time emails fetched from your Gmail account via ImapFlow.</p>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <!-- Search filter input -->
+        <div class="relative">
+          <input 
+            type="text" 
+            id="filter-input" 
+            placeholder="Filter emails..." 
+            class="w-44 sm:w-56 px-3 py-2 pl-8 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400 text-slate-800"
+          />
+          <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+
+        <!-- Refresh / Fetch New Emails Button -->
+        <button 
+          type="button" 
+          id="refresh-btn"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shrink-0"
+        >
+          <svg id="refresh-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span id="refresh-btn-text">Refresh / Fetch New Emails</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert / Status Banner -->
+    <div id="inbox-alert" class="hidden mb-6 p-4 rounded-lg border text-sm transition-all"></div>
+
+    <!-- Unconfigured State Screen -->
+    <div id="unconfigured-state" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center shadow-sm">
+      <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-600">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-1">No Gmail Account Configured</h3>
+      <p class="text-slate-600 text-sm max-w-md mx-auto mb-6">
+        Please configure your Gmail address and 16-character App Password on the admin page to start receiving live emails.
+      </p>
+      <a 
+        href="/admin" 
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        <span>Configure Gmail Credentials</span>
+      </a>
+    </div>
+
+    <!-- Loading Skeleton State -->
+    <div id="loading-state" class="hidden space-y-4">
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm animate-pulse space-y-3">
+        <div class="flex justify-between items-center">
+          <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+          <div class="h-3 bg-slate-200 rounded w-24"></div>
+        </div>
+        <div class="h-5 bg-slate-200 rounded w-3/4"></div>
+        <div class="h-3 bg-slate-200 rounded w-full"></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm animate-pulse space-y-3">
+        <div class="flex justify-between items-center">
+          <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+          <div class="h-3 bg-slate-200 rounded w-28"></div>
+        </div>
+        <div class="h-5 bg-slate-200 rounded w-1/2"></div>
+        <div class="h-3 bg-slate-200 rounded w-5/6"></div>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm animate-pulse space-y-3">
+        <div class="flex justify-between items-center">
+          <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+          <div class="h-3 bg-slate-200 rounded w-20"></div>
+        </div>
+        <div class="h-5 bg-slate-200 rounded w-2/3"></div>
+        <div class="h-3 bg-slate-200 rounded w-4/5"></div>
+      </div>
+      <div class="text-center py-2 text-xs text-slate-500 font-medium">
+        Connecting to Gmail IMAP and fetching messages...
+      </div>
+    </div>
+
+    <!-- Empty Inbox State -->
+    <div id="empty-state" class="hidden bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm">
+      <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-3 text-slate-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+        </svg>
+      </div>
+      <h3 class="text-base font-semibold text-slate-900 mb-1">Inbox is Empty</h3>
+      <p class="text-slate-500 text-xs max-w-sm mx-auto">
+        No emails found in the INBOX folder. Send a test email to your Gmail address and click "Refresh".
+      </p>
+    </div>
+
+    <!-- Email List Container -->
+    <div id="email-list" class="space-y-4"></div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500 mt-auto">
+    Gmail IMAP Testing Application &bull; Powered by Express, ImapFlow &amp; Mailparser
+  </footer>
+
+  <!-- Page Script -->
+  <script>
+    let fetchedEmails = [];
+    let isConfigured = false;
+
+    const emailList = document.getElementById('email-list');
+    const loadingState = document.getElementById('loading-state');
+    const emptyState = document.getElementById('empty-state');
+    const unconfiguredState = document.getElementById('unconfigured-state');
+    const alertBox = document.getElementById('inbox-alert');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const refreshIcon = document.getElementById('refresh-icon');
+    const refreshBtnText = document.getElementById('refresh-btn-text');
+    const emailCountBadge = document.getElementById('email-count-badge');
+    const filterInput = document.getElementById('filter-input');
+
+    const headerStatusPill = document.getElementById('header-status-pill');
+    const headerStatusDot = document.getElementById('header-status-dot');
+    const headerAccountText = document.getElementById('header-account-text');
+
+    function showAlert(msg, type = 'error') {
+      alertBox.className = 'mb-6 p-4 rounded-lg border text-sm transition-all block ';
+      if (type === 'success') {
+        alertBox.className += 'bg-emerald-50 border-emerald-200 text-emerald-800';
+      } else if (type === 'warning') {
+        alertBox.className += 'bg-amber-50 border-amber-200 text-amber-800';
+      } else {
+        alertBox.className += 'bg-rose-50 border-rose-200 text-rose-800';
+      }
+      alertBox.innerHTML = msg;
+    }
+
+    function hideAlert() {
+      alertBox.className = 'hidden';
+      alertBox.innerHTML = '';
+    }
+
+    // Format date nicely: relative (e.g. 5m ago) + exact local string
+    function formatDate(isoStr) {
+      if (!isoStr) return 'Unknown date';
+      try {
+        const d = new Date(isoStr);
+        const now = new Date();
+        const diffMs = now - d;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        let relative = '';
+        if (diffMins < 1) relative = 'Just now';
+        else if (diffMins < 60) relative = `${diffMins}m ago`;
+        else if (diffHours < 24) relative = `${diffHours}h ago`;
+        else if (diffDays < 7) relative = `${diffDays}d ago`;
+        else relative = d.toLocaleDateString();
+
+        const exact = d.toLocaleString([], {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        return { relative, exact };
+      } catch (e) {
+        return { relative: isoStr, exact: isoStr };
+      }
+    }
+
+    // Render single email card
+    function renderEmailCard(email, index) {
+      const dateInfo = formatDate(email.date);
+      const card = document.createElement('article');
+      card.className = 'bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow transition-shadow';
+      card.id = `email-card-${index}`;
+
+      const cardId = `email-body-${index}`;
+
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <!-- 1. Sender (From) -->
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                #${index + 1}
+              </span>
+              <span class="font-semibold text-slate-900 text-sm truncate" title="${escapeHtml(email.from)}">
+                ${escapeHtml(email.from)}
+              </span>
+              ${email.fromAddress ? `<span class="text-xs text-slate-500 font-mono hidden sm:inline">&lt;${escapeHtml(email.fromAddress)}&gt;</span>` : ''}
+            </div>
+          </div>
+
+          <!-- 3. Date & Time -->
+          <div class="text-right shrink-0">
+            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 inline-block">
+              ${escapeHtml(dateInfo.relative)}
+            </span>
+            <div class="text-[11px] text-slate-400 mt-1 hidden sm:block">
+              ${escapeHtml(dateInfo.exact)}
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Subject -->
+        <h3 class="text-base font-bold text-slate-900 mb-2 leading-snug break-words">
+          ${escapeHtml(email.subject || '(No Subject)')}
+        </h3>
+
+        <!-- 4. Email Body (Text / Snippet) -->
+        <div class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 break-words font-sans">
+          <div id="${cardId}-snippet" class="whitespace-pre-line">
+            ${escapeHtml(email.snippet || '(Empty email body)')}
+          </div>
+
+          <!-- Expanded full body (hidden by default) -->
+          <div id="${cardId}-full" class="hidden mt-3 pt-3 border-t border-slate-200 text-slate-800">
+            <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Message Content:</h4>
+            <div class="max-h-96 overflow-y-auto bg-white p-3 rounded border border-slate-200 whitespace-pre-wrap font-mono text-xs">
+              ${escapeHtml(email.bodyText || email.snippet || '(No text content)')}
+            </div>
+          </div>
+
+          <!-- Expand / Collapse Button -->
+          <div class="mt-2 flex items-center justify-between text-[11px]">
+            <span class="text-slate-400">UID: ${email.uid || 'N/A'}</span>
+            <button 
+              type="button" 
+              onclick="toggleEmailBody('${cardId}')" 
+              id="${cardId}-btn"
+              class="text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+            >
+              Expand Full Message &darr;
+            </button>
+          </div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    // Toggle full message visibility
+    window.toggleEmailBody = function(cardId) {
+      const full = document.getElementById(`${cardId}-full`);
+      const btn = document.getElementById(`${cardId}-btn`);
+      if (full.classList.contains('hidden')) {
+        full.classList.remove('hidden');
+        btn.innerHTML = 'Collapse &uarr;';
+      } else {
+        full.classList.add('hidden');
+        btn.innerHTML = 'Expand Full Message &darr;';
+      }
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Render list with optional filter
+    function renderList() {
+      const query = (filterInput.value || '').trim().toLowerCase();
+      emailList.innerHTML = '';
+
+      const filtered = query
+        ? fetchedEmails.filter(e => 
+            (e.subject && e.subject.toLowerCase().includes(query)) ||
+            (e.from && e.from.toLowerCase().includes(query)) ||
+            (e.snippet && e.snippet.toLowerCase().includes(query))
+          )
+        : fetchedEmails;
+
+      if (filtered.length === 0) {
+        if (fetchedEmails.length === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          emptyState.classList.remove('hidden');
+          emptyState.querySelector('h3').textContent = 'No matching emails';
+          emptyState.querySelector('p').textContent = `No messages match your search term "${query}".`;
+        }
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      filtered.forEach((email, idx) => {
+        emailList.appendChild(renderEmailCard(email, idx));
+      });
+    }
+
+    filterInput.addEventListener('input', renderList);
+
+    // Fetch emails from API
+    async function fetchEmails() {
+      hideAlert();
+      loadingState.classList.remove('hidden');
+      emailList.innerHTML = '';
+      emptyState.classList.add('hidden');
+      unconfiguredState.classList.add('hidden');
+
+      refreshBtn.disabled = true;
+      refreshIcon.classList.add('animate-spin');
+      refreshBtnText.textContent = 'Fetching...';
+
+      try {
+        const res = await fetch('/api/emails?limit=10');
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          fetchedEmails = data.emails || [];
+          isConfigured = true;
+
+          emailCountBadge.textContent = `${fetchedEmails.length} latest email${fetchedEmails.length === 1 ? '' : 's'}`;
+          emailCountBadge.classList.remove('hidden');
+
+          if (data.user) {
+            headerStatusPill.classList.remove('hidden');
+            headerStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse';
+            headerAccountText.textContent = data.user;
+          }
+
+          renderList();
+        } else {
+          if (data.configured === false) {
+            isConfigured = false;
+            unconfiguredState.classList.remove('hidden');
+            headerStatusPill.classList.add('hidden');
+          } else {
+            const errorMsg = data.error || 'Failed to fetch emails via IMAP.';
+            showAlert(`<strong>Error fetching emails:</strong> ${errorMsg} <div class="mt-2"><a href="/admin" class="underline font-medium text-rose-900">Check Admin Credentials &rarr;</a></div>`, 'error');
+            emptyState.classList.remove('hidden');
+            emptyState.querySelector('h3').textContent = 'Unable to fetch emails';
+            emptyState.querySelector('p').textContent = 'Please check your connection and configuration.';
+          }
+        }
+      } catch (err) {
+        showAlert(`<strong>Network Error:</strong> ${err.message}`, 'error');
+        emptyState.classList.remove('hidden');
+      } finally {
+        loadingState.classList.add('hidden');
+        refreshBtn.disabled = false;
+        refreshIcon.classList.remove('animate-spin');
+        refreshBtnText.textContent = 'Refresh / Fetch New Emails';
+      }
+    }
+
+    refreshBtn.addEventListener('click', () => {
+      fetchEmails();
+    });
+
+    // Check config on initial page load
+    async function init() {
+      try {
+        const cfgRes = await fetch('/api/config');
+        const cfg = await cfgRes.json();
+
+        if (cfg.configured) {
+          headerStatusPill.classList.remove('hidden');
+          headerAccountText.textContent = cfg.user;
+          if (cfg.status === 'connected') {
+            headerStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 mr-1.5';
+          } else {
+            headerStatusDot.className = 'w-2 h-2 rounded-full bg-rose-500 mr-1.5';
+          }
+          fetchEmails();
+        } else {
+          unconfiguredState.classList.remove('hidden');
+          headerStatusPill.classList.add('hidden');
+        }
+      } catch (e) {
+        unconfiguredState.classList.remove('hidden');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

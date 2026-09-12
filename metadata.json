@@ -1,0 +1,6 @@
+{
+  "name": "Gmail IMAP Tester",
+  "description": "Minimal Node.js and Express full-stack application using ImapFlow and Mailparser to test and receive Gmail emails.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
