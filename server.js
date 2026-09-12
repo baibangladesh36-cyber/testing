@@ -101,24 +101,64 @@ async function testImapConnection(cfg) {
   }
 }
 
+// Helper: Detect sender service / brand for SMS-style badge
+function detectService(fromText, fromAddress, subject) {
+  const combined = `${fromText || ''} ${fromAddress || ''} ${subject || ''}`.toLowerCase();
+  if (combined.includes('google') || combined.includes('gmail')) return { name: 'Google', bg: 'bg-red-50 text-red-700 border-red-200', icon: 'G' };
+  if (combined.includes('telegram')) return { name: 'Telegram', bg: 'bg-sky-50 text-sky-700 border-sky-200', icon: 'TG' };
+  if (combined.includes('whatsapp')) return { name: 'WhatsApp', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: 'WA' };
+  if (combined.includes('facebook') || combined.includes('meta') || combined.includes('instagram')) return { name: 'Meta', bg: 'bg-blue-50 text-blue-700 border-blue-200', icon: 'M' };
+  if (combined.includes('microsoft') || combined.includes('outlook') || combined.includes('azure') || combined.includes('live.com')) return { name: 'Microsoft', bg: 'bg-cyan-50 text-cyan-700 border-cyan-200', icon: 'MS' };
+  if (combined.includes('apple') || combined.includes('icloud')) return { name: 'Apple', bg: 'bg-slate-100 text-slate-800 border-slate-300', icon: '' };
+  if (combined.includes('twitter') || combined.includes(' x ') || combined.includes('x.com')) return { name: 'X / Twitter', bg: 'bg-zinc-100 text-zinc-900 border-zinc-300', icon: '𝕏' };
+  if (combined.includes('discord')) return { name: 'Discord', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: 'DC' };
+  if (combined.includes('github')) return { name: 'GitHub', bg: 'bg-gray-100 text-gray-900 border-gray-300', icon: 'GH' };
+  if (combined.includes('steam')) return { name: 'Steam', bg: 'bg-slate-800 text-white border-slate-700', icon: 'ST' };
+  if (combined.includes('amazon')) return { name: 'Amazon', bg: 'bg-amber-50 text-amber-800 border-amber-300', icon: 'AZ' };
+  if (combined.includes('netflix')) return { name: 'Netflix', bg: 'bg-rose-50 text-rose-700 border-rose-200', icon: 'NF' };
+  if (combined.includes('stripe')) return { name: 'Stripe', bg: 'bg-purple-50 text-purple-700 border-purple-200', icon: 'SP' };
+  if (combined.includes('uber')) return { name: 'Uber', bg: 'bg-zinc-900 text-white border-zinc-800', icon: 'UB' };
+  if (combined.includes('paypal')) return { name: 'PayPal', bg: 'bg-blue-50 text-blue-800 border-blue-300', icon: 'PP' };
+  if (combined.includes('tiktok')) return { name: 'TikTok', bg: 'bg-neutral-900 text-pink-400 border-neutral-700', icon: 'TT' };
+
+  // Fallback: extract clean name from fromText
+  const cleanName = (fromText || 'Service').replace(/<.*?>/, '').replace(/["']/g, '').trim().slice(0, 24) || 'Service';
+  const initials = cleanName.slice(0, 2).toUpperCase() || 'SMS';
+  return { name: cleanName, bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: initials };
+}
+
 // Helper: Extract OTP/Verification code candidates from email text and subject
 function extractOtp(text, subject) {
-  const combined = `${subject || ''} ${text || ''}`;
-  // 1. Look for explicit keyword patterns (code is 123456, OTP: 1234, etc.)
-  const keywordMatch = combined.match(/(?:verification\s*code|security\s*code|confirmation\s*code|login\s*code|passcode|otp|pin|token)\s*(?:is|:|-|=|\s)\s*([0-9]{4,8})\b/i);
+  const combined = `${subject || ''}\n${text || ''}`;
+
+  // 1. Google style verification code: G-123456
+  const gMatch = combined.match(/\b(G-[0-9]{6})\b/i);
+  if (gMatch && gMatch[1]) return gMatch[1].toUpperCase();
+
+  // 2. Explicit keyword patterns (verification code is 123456, OTP: 1234, etc.)
+  const keywordMatch = combined.match(/(?:verification\s*code|security\s*code|confirmation\s*code|login\s*code|access\s*code|passcode|one-time\s*password|otp|pin|código|kod)\s*(?:is|:|-|=|\s)\s*([0-9]{4,8})\b/i);
   if (keywordMatch && keywordMatch[1]) {
     return keywordMatch[1];
   }
-  // 2. Look for standard 6-digit standalone numbers
+
+  // 3. Keyword followed shortly by 3-3 spaced number (e.g. 123 456 or 123-456)
+  const splitMatch = combined.match(/(?:verification|security|confirmation|login|code|otp|pin)\D{0,20}([0-9]{3})[\s-]([0-9]{3})\b/i);
+  if (splitMatch && splitMatch[1] && splitMatch[2]) {
+    return `${splitMatch[1]}${splitMatch[2]}`;
+  }
+
+  // 4. Standard 6-digit standalone numbers
   const sixDigitMatch = combined.match(/\b([0-9]{6})\b/);
   if (sixDigitMatch && sixDigitMatch[1]) {
     return sixDigitMatch[1];
   }
-  // 3. Look for 4 to 8 digit standalone numbers
+
+  // 5. 4 to 8 digit standalone numbers
   const anyDigitMatch = combined.match(/\b([0-9]{4,8})\b/);
   if (anyDigitMatch && anyDigitMatch[1]) {
     return anyDigitMatch[1];
   }
+
   return null;
 }
 
@@ -183,12 +223,14 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
           const bodyText = (parsed.text || '').trim();
           const snippet = bodyText ? bodyText.slice(0, 220).replace(/\s+/g, ' ') : (parsed.html ? 'Contains HTML formatted content' : '(Empty body)');
           const detectedOtp = extractOtp(bodyText, subject);
+          const service = detectService(fromText, fromAddress, subject);
 
           emails.push({
             uid: msg.uid,
             seq: msg.seq,
             from: fromText,
             fromAddress: fromAddress,
+            service: service,
             to: parsed.to?.text || '',
             subject: subject,
             date: date,
@@ -213,13 +255,17 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
           }
 
           const sub = msg.envelope?.subject || '(No Subject)';
+          const fromName = msg.envelope?.from?.[0]?.name || msg.envelope?.from?.[0]?.address || 'Unknown';
+          const fromAddr = msg.envelope?.from?.[0]?.address || '';
           const detectedOtp = extractOtp('', sub);
+          const service = detectService(fromName, fromAddr, sub);
 
           emails.push({
             uid: msg.uid,
             seq: msg.seq,
-            from: msg.envelope?.from?.[0]?.name || msg.envelope?.from?.[0]?.address || 'Unknown',
-            fromAddress: msg.envelope?.from?.[0]?.address || '',
+            from: fromName,
+            fromAddress: fromAddr,
+            service: service,
             to: '',
             subject: sub,
             date: fallbackDate.toISOString(),
