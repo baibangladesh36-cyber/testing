@@ -396,12 +396,9 @@ app.use((req, res) => {
   res.status(404).send('Page not found. <a href="/">Go to Inbox</a> or <a href="/admin">Go to Admin</a>');
 });
 
-// Start Express server on PORT 3000
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`===========================================`);
-  console.log(`Gmail IMAP Testing Application`);
-  console.log(`Server running at http://localhost:${PORT}`);
+// Start Express server on dynamic port for hosting platforms
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
   console.log(`- Inbox Page: http://localhost:${PORT}/`);
   console.log(`- Admin Page: http://localhost:${PORT}/admin`);
-  console.log(`===========================================`);
 });
