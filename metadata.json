@@ -1,6 +1,6 @@
 {
   "name": "Gmail IMAP Tester",
-  "description": "Temp-Mail service using Gmail Plus-Addressing (Aliasing) with private user sessions, unique recipient filtering, live 4s polling, instant OTP extraction, and full message modals.",
+  "description": "Real-Time Push Temp Mail platform powered by Socket.io WebSockets, ImapFlow IDLE push notifications, zero client-side polling, audio chimes, and instant OTP verification code highlights.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -13,7 +13,8 @@
   "dependencies": {
     "express": "^4.21.2",
     "imapflow": "^2.0.2",
-    "mailparser": "^3.7.2"
+    "mailparser": "^3.7.2",
+    "socket.io": "^4.8.3"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -25,5 +26,8 @@
     "email-parser"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "socket.io-client": "^4.8.3"
+  }
 }

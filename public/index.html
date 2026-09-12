@@ -17,9 +17,11 @@
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Temp Mail - Private Gmail Aliasing &amp; OTP Inbox</title>
+  <title>Temp Mail - Real-Time Push &amp; Live OTP Inbox</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Socket.io Client CDN -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -40,12 +42,12 @@
   <style>
     @keyframes arrivalFlash {
       0% {
-        background-color: rgba(34, 197, 94, 0.22);
-        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
-        transform: scale(1.006);
+        background-color: rgba(34, 197, 94, 0.35);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4);
+        transform: scale(1.01);
       }
-      70% {
-        background-color: rgba(34, 197, 94, 0.05);
+      60% {
+        background-color: rgba(34, 197, 94, 0.08);
       }
       100% {
         background-color: transparent;
@@ -54,7 +56,7 @@
       }
     }
     .animate-arrival-flash {
-      animation: arrivalFlash 2.4s ease-out;
+      animation: arrivalFlash 2.5s ease-out;
     }
     @keyframes pulseRadar {
       0% { transform: scale(0.92); opacity: 0.85; }
@@ -63,6 +65,13 @@
     }
     .animate-radar {
       animation: pulseRadar 2.2s infinite ease-in-out;
+    }
+    @keyframes badgeGlow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .animate-glow {
+      animation: badgeGlow 1.8s infinite ease-in-out;
     }
   </style>
 </head>
@@ -79,10 +88,13 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-extrabold text-slate-900 text-base sm:text-lg leading-tight tracking-tight">Temp Mail &bull; Private Inbox</h1>
-            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 uppercase tracking-wider">Plus-Aliased</span>
+            <h1 class="font-extrabold text-slate-900 text-base sm:text-lg leading-tight tracking-tight">Temp Mail &bull; Real-Time Push</h1>
+            <span id="socket-status-badge" class="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded-full border border-amber-200 uppercase tracking-wider flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Connecting WS...</span>
+            </span>
           </div>
-          <p class="text-xs text-slate-500">Isolated User Sessions &bull; Instant OTP Extraction</p>
+          <p class="text-xs text-slate-500">WebSocket Push &bull; ImapFlow IDLE &bull; Instant OTP Extraction</p>
         </div>
       </div>
 
@@ -93,13 +105,13 @@
           type="button" 
           id="sound-toggle-btn"
           class="px-2.5 sm:px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
-          title="Toggle audio notification for incoming messages"
+          title="Toggle audio notification chime for incoming messages"
         >
           <span id="sound-icon">🔔</span>
           <span id="sound-text" class="hidden sm:inline">Audio ON</span>
         </button>
 
-        <!-- Admin Configuration Link -->
+        <!-- Admin Pool Management Link -->
         <a 
           href="/admin" 
           id="nav-admin-link"
@@ -109,7 +121,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
           </svg>
-          <span>Admin Setup</span>
+          <span class="hidden sm:inline">Accounts Pool</span>
+          <span class="sm:hidden">Pool</span>
+          <span id="nav-pool-count" class="ml-1 px-1.5 py-0.2 bg-blue-100 text-blue-800 rounded-full text-[10px] font-bold">--</span>
         </a>
       </div>
 
@@ -119,32 +133,32 @@
   <!-- Main Container -->
   <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6">
 
-    <!-- 1. Temp Mail Hero Card with Plus-Addressing -->
+    <!-- 1. Temp Mail Hero Card -->
     <section id="hero-card" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm mb-8 text-center relative overflow-hidden">
-      <!-- Decorative subtle background accents -->
+      <!-- Subtle background lighting accents -->
       <div class="absolute -top-24 -right-24 w-60 h-60 bg-emerald-50 rounded-full blur-3xl pointer-events-none -z-0"></div>
       <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-teal-50 rounded-full blur-3xl pointer-events-none -z-0"></div>
 
       <div class="relative z-10 max-w-3xl mx-auto">
         
-        <!-- Private Session Status Pill -->
-        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-4 shadow-2xs">
+        <!-- Push Status Pill -->
+        <div id="live-status-pill" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-4 shadow-2xs">
           <span class="relative flex h-2.5 w-2.5">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
           </span>
-          <span id="live-status-text">Waiting for incoming emails...</span>
+          <span id="live-status-text">Connecting WebSocket IDLE stream...</span>
         </div>
 
-        <!-- Generated Unique Alias Display & Primary Action Buttons -->
+        <!-- Real Email Display & Action Buttons -->
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 my-2">
           
-          <!-- Unique Email Address Box -->
+          <!-- Email Address Box -->
           <div 
             id="active-address-container"
-            class="w-full sm:w-auto bg-slate-50 border-2 border-slate-200 hover:border-emerald-300 rounded-2xl px-5 py-3.5 text-slate-900 font-mono text-lg sm:text-2xl font-extrabold tracking-tight transition-all select-all flex items-center justify-center min-w-[280px] sm:min-w-[380px] shadow-2xs"
+            class="w-full sm:w-auto bg-slate-50 border-2 border-slate-200 hover:border-emerald-400 rounded-2xl px-5 py-3.5 text-slate-900 font-mono text-lg sm:text-2xl font-extrabold tracking-tight transition-all select-all flex items-center justify-center min-w-[280px] sm:min-w-[380px] shadow-2xs"
           >
-            <span id="active-address-display" class="truncate">Generating private alias...</span>
+            <span id="active-address-display" class="truncate">Assigning email from pool...</span>
           </div>
 
           <!-- "Copy Email" Button -->
@@ -159,62 +173,59 @@
             <span id="copy-btn-text">Copy Email</span>
           </button>
 
-          <!-- "Change / New Address" Button -->
+          <!-- "Change Email / Random Next" Button -->
           <button 
             type="button" 
             id="change-address-btn"
             class="w-full sm:w-auto px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl text-sm sm:text-base transition-colors border border-slate-300 flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-2xs"
-            title="Generate a new random email address and start a fresh session"
+            title="Switch to another real account from the pool"
           >
             <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
-            <span>Change / New Address</span>
+            <span>Change / Random Next</span>
           </button>
 
-        </div>
-
-        <!-- Privacy & Plus-Addressing Explainer Badge -->
-        <div class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-600 font-medium max-w-xl mx-auto">
-          <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-          </svg>
-          <span>Private Session Active: Only emails sent to your unique alias appear here. Other users cannot see your messages.</span>
-        </div>
-
-        <!-- Dynamic Countdown & Refresh Progress Bar -->
-        <div class="mt-5 flex flex-col items-center justify-center gap-2">
-          <div class="flex items-center gap-2 text-xs font-mono text-slate-500">
-            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span id="countdown-label">Auto-refreshing in 4s...</span>
-            <span class="text-slate-300">&bull;</span>
-            <span id="session-timestamp-label" class="text-slate-400">Session started just now</span>
-          </div>
-
-          <!-- Progress Bar Line -->
-          <div class="w-48 sm:w-64 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-            <div id="countdown-progress-bar" class="h-full bg-emerald-500 transition-all duration-100 ease-linear" style="width: 100%;"></div>
-          </div>
-        </div>
-
-        <!-- Secondary Quick Actions -->
-        <div class="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs">
-          <!-- Refresh Inbox Now Button -->
+          <!-- "Select from List" Button -->
           <button 
             type="button" 
-            id="manual-refresh-btn" 
-            class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
+            id="select-from-list-btn"
+            class="w-full sm:w-auto px-4 py-3.5 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-2xl text-sm sm:text-base transition-colors border border-slate-300 flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-2xs"
+            title="Pick an account from the database pool"
           >
-            <svg id="manual-refresh-icon" class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
             </svg>
-            <span>Refresh Inbox</span>
+            <span>Select from List</span>
           </button>
 
-          <!-- Current Session Tag Label -->
+        </div>
+
+        <!-- Real-Time Push Stream Status Details -->
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-600 font-medium max-w-xl mx-auto">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Real-Time WebSocket Push (0ms polling delay)</span>
+          </div>
+          <span class="text-slate-300">&bull;</span>
+          <div class="flex items-center gap-1.5">
+            <span class="font-mono text-slate-500">ImapFlow IDLE:</span>
+            <span id="idle-status-tag" class="font-bold text-emerald-700">Listening live</span>
+          </div>
+        </div>
+
+        <!-- Secondary Info & Status Badges -->
+        <div class="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs">
+          <!-- Active Account Pool ID -->
           <div class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl font-mono text-xs flex items-center gap-1.5 border border-slate-200">
-            <span class="text-slate-400">Alias Tag:</span>
-            <span id="current-tag-display" class="font-bold text-slate-900">--</span>
+            <span class="text-slate-400">Account ID:</span>
+            <span id="current-account-id-label" class="font-bold text-slate-900">--</span>
+          </div>
+
+          <!-- Socket Connection Indicator -->
+          <div class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl font-mono text-xs flex items-center gap-1.5 border border-slate-200">
+            <span class="text-slate-400">Socket:</span>
+            <span id="socket-id-label" class="font-bold text-slate-900">Disconnected</span>
           </div>
         </div>
 
@@ -222,7 +233,7 @@
     </section>
 
     <!-- Global Alert Box -->
-    <div id="alert-box" class="hidden mb-6 p-4 rounded-xl border text-sm transition-all"></div>
+    <div id="alert-box" class="hidden mb-6 p-4 rounded-xl border text-sm transition-all shadow-2xs"></div>
 
     <!-- 2. Live Messages Feed Section -->
     <section class="mb-10">
@@ -233,6 +244,10 @@
           <h2 class="text-xl font-bold text-slate-900 tracking-tight" id="feed-title">Inbox Messages</h2>
           <span id="feed-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
             0 received
+          </span>
+          <span class="px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>Real-Time Push</span>
           </span>
         </div>
 
@@ -261,48 +276,43 @@
           <div class="col-span-2 text-right">Time &amp; Full View</div>
         </div>
 
-        <!-- 3. Empty State: Sleek Animated Radar Pulse -->
+        <!-- Empty State: Waiting for incoming push -->
         <div id="radar-empty-state" class="py-16 px-6 text-center">
           <div class="relative w-24 h-24 mx-auto mb-5 flex items-center justify-center">
-            <!-- Animated circular radar waves -->
             <span class="animate-radar absolute inline-flex h-full w-full rounded-full bg-emerald-100"></span>
             <span class="animate-ping absolute inline-flex h-16 w-16 rounded-full bg-emerald-200/50"></span>
-            <!-- Center Icon -->
             <div class="relative z-10 w-14 h-14 bg-emerald-50 border-2 border-emerald-400 text-emerald-600 rounded-full flex items-center justify-center shadow-md">
               <svg class="w-7 h-7 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
               </svg>
             </div>
           </div>
-          <h3 class="text-lg font-bold text-slate-900 mb-1">Waiting for incoming emails...</h3>
+          <h3 class="text-lg font-bold text-slate-900 mb-1">Waiting for incoming messages...</h3>
           <p class="text-sm text-slate-500 max-w-md mx-auto mb-4">
-            Send an email or verification code to your unique alias above. Messages addressed specifically to you will appear here instantly.
+            Send an email or verification code to your assigned email address above. The backend server listens using ImapFlow IDLE and pushes new emails immediately over WebSocket without any polling.
           </p>
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-600">
-            <svg class="animate-spin w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-            </svg>
-            <span>Live listener active &bull; Auto-polling every 4s</span>
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-mono text-emerald-800 shadow-2xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>WebSocket push stream open &bull; zero polling</span>
           </div>
         </div>
 
-        <!-- Unconfigured Empty State -->
+        <!-- Unconfigured Empty State (Pool is empty) -->
         <div id="unconfigured-state" class="hidden py-16 px-6 text-center">
-          <div class="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-200">
+          <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-slate-900 mb-1">Gmail IMAP Not Configured</h3>
+          <h3 class="text-lg font-bold text-slate-900 mb-1">Accounts Pool Is Empty</h3>
           <p class="text-sm text-slate-500 max-w-md mx-auto mb-5">
-            To start receiving Temp Mail and verification codes, enter your base Gmail address and 16-character App Password on the admin setup page.
+            Please add real Gmail accounts with App Passwords in the Admin panel. You can bulk import 100+ accounts at once.
           </p>
           <a 
             href="/admin" 
-            class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm shadow-sm transition-colors"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm shadow-sm transition-colors"
           >
-            <span>Go to Admin Setup</span>
+            <span>Open Admin Accounts Pool</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
             </svg>
@@ -317,9 +327,55 @@
 
   </main>
 
-  <!-- Modal: View Full Email Details -->
+  <!-- Modal: "Select from List" (Pick from pool) -->
+  <div id="pool-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] flex flex-col overflow-hidden">
+      
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Select Email from Pool</h3>
+          <p class="text-xs text-slate-500">Pick any available Gmail account. The IDLE watcher will instantly switch.</p>
+        </div>
+        <button 
+          type="button" 
+          onclick="closePoolModal()"
+          class="w-8 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors border border-slate-200 cursor-pointer"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Search Filter within Modal -->
+      <div class="p-4 border-b border-slate-100 bg-white">
+        <input 
+          type="text" 
+          id="pool-modal-search" 
+          placeholder="Filter by email address..." 
+          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+      </div>
+
+      <!-- Account List Container -->
+      <div id="pool-modal-list" class="p-4 overflow-y-auto space-y-2 flex-1 divide-y divide-slate-100">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button 
+          type="button" 
+          onclick="closePoolModal()"
+          class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal: View Full Email Message -->
   <div id="message-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
-    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden transform transition-all">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
       
       <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
@@ -334,7 +390,7 @@
         </div>
         <button 
           type="button" 
-          id="modal-close-btn"
+          onclick="closeMessageModal()"
           class="w-8 h-8 rounded-lg bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors border border-slate-200 cursor-pointer"
         >
           ✕
@@ -376,7 +432,7 @@
           </div>
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Delivered To:</span>
-            <span id="modal-to" class="font-mono text-emerald-700 font-semibold sm:text-right break-words">user+alias@gmail.com</span>
+            <span id="modal-to" class="font-mono text-emerald-700 font-semibold sm:text-right break-words">user@gmail.com</span>
           </div>
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Date / Time:</span>
@@ -403,11 +459,11 @@
             id="modal-copy-all-btn"
             class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
           >
-            Copy Full Text
+            Copy Text
           </button>
           <button 
             type="button" 
-            onclick="closeModal()"
+            onclick="closeMessageModal()"
             class="px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
           >
             Close
@@ -422,47 +478,44 @@
   <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300">
     <div class="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-800 text-sm">
       <span id="toast-icon" class="text-emerald-400 text-lg">✓</span>
-      <span id="toast-msg" class="font-medium">Copied!</span>
+      <span id="toast-msg" class="font-medium">Notification</span>
     </div>
   </div>
 
   <!-- Footer -->
   <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500 mt-auto">
-    Temp Mail &bull; Private Gmail Plus-Addressing Session &bull; Auto-polling every 4s
+    Temp Mail Platform &bull; Powered by WebSocket (Socket.io) &amp; ImapFlow IDLE (Push-Only)
   </footer>
 
-  <!-- Application Logic -->
+  <!-- Real-Time Application Script -->
   <script>
     // State management
-    let baseGmailAddress = '';
-    let currentAlias = '';
-    let currentTag = '';
-    let sessionTimestamp = Date.now();
-    let isConfigured = false;
-    let knownUids = new Set();
+    let socket = null;
+    let activeAccount = null; // { id, email, status }
+    let poolList = [];
     let currentEmails = [];
+    let knownUids = new Set();
     let soundEnabled = true;
 
-    // Polling constants
-    const REFRESH_CYCLE_MS = 4000;
-    let cycleTimeRemaining = REFRESH_CYCLE_MS;
-    let countdownInterval = null;
-
     // DOM Elements
+    const socketStatusBadge = document.getElementById('socket-status-badge');
+    const liveStatusPill = document.getElementById('live-status-pill');
+    const liveStatusText = document.getElementById('live-status-text');
+    const idleStatusTag = document.getElementById('idle-status-tag');
+    const socketIdLabel = document.getElementById('socket-id-label');
+    const currentAccountIdLabel = document.getElementById('current-account-id-label');
+
     const activeAddressDisplay = document.getElementById('active-address-display');
     const copyAddressBtn = document.getElementById('copy-address-btn');
     const copyBtnText = document.getElementById('copy-btn-text');
     const copyIcon = document.getElementById('copy-icon');
     const changeAddressBtn = document.getElementById('change-address-btn');
-    const currentTagDisplay = document.getElementById('current-tag-display');
-    const countdownLabel = document.getElementById('countdown-label');
-    const countdownProgressBar = document.getElementById('countdown-progress-bar');
-    const sessionTimestampLabel = document.getElementById('session-timestamp-label');
-    const manualRefreshBtn = document.getElementById('manual-refresh-btn');
-    const manualRefreshIcon = document.getElementById('manual-refresh-icon');
+    const selectFromListBtn = document.getElementById('select-from-list-btn');
+
     const soundToggleBtn = document.getElementById('sound-toggle-btn');
     const soundIcon = document.getElementById('sound-icon');
     const soundText = document.getElementById('sound-text');
+    const navPoolCount = document.getElementById('nav-pool-count');
     const alertBox = document.getElementById('alert-box');
 
     const feedTitle = document.getElementById('feed-title');
@@ -472,9 +525,12 @@
     const unconfiguredState = document.getElementById('unconfigured-state');
     const messagesList = document.getElementById('messages-list');
 
-    // Modal elements
+    // Modals
+    const poolModal = document.getElementById('pool-modal');
+    const poolModalSearch = document.getElementById('pool-modal-search');
+    const poolModalList = document.getElementById('pool-modal-list');
+
     const messageModal = document.getElementById('message-modal');
-    const modalCloseBtn = document.getElementById('modal-close-btn');
     const modalServiceBadge = document.getElementById('modal-service-badge');
     const modalServiceName = document.getElementById('modal-service-name');
     const modalTimeLabel = document.getElementById('modal-time-label');
@@ -489,12 +545,11 @@
     const modalUidLabel = document.getElementById('modal-uid-label');
     const modalCopyAllBtn = document.getElementById('modal-copy-all-btn');
 
-    // Toast elements
+    // Toast
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toast-msg');
     const toastIcon = document.getElementById('toast-icon');
 
-    // Toast popup notification
     function showToast(text, icon = '✓') {
       toastMsg.textContent = text;
       toastIcon.textContent = icon;
@@ -506,7 +561,7 @@
       }, 3000);
     }
 
-    // Two-tone Web Audio Chime
+    // Audio chime notification
     function playArrivalChime() {
       if (!soundEnabled) return;
       try {
@@ -515,63 +570,47 @@
         const ctx = new AudioContextClass();
         const now = ctx.currentTime;
 
-        // Note 1: 587.33 Hz (D5)
+        // Tone 1: 587.33 Hz (D5)
         const osc1 = ctx.createOscillator();
         const gain1 = ctx.createGain();
         osc1.type = 'sine';
         osc1.frequency.setValueAtTime(587.33, now);
-        gain1.gain.setValueAtTime(0.2, now);
-        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        gain1.gain.setValueAtTime(0.22, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
         osc1.connect(gain1);
         gain1.connect(ctx.destination);
         osc1.start(now);
-        osc1.stop(now + 0.3);
+        osc1.stop(now + 0.35);
 
-        // Note 2: 880 Hz (A5)
+        // Tone 2: 880 Hz (A5)
         const osc2 = ctx.createOscillator();
         const gain2 = ctx.createGain();
         osc2.type = 'sine';
         osc2.frequency.setValueAtTime(880.0, now + 0.12);
-        gain2.gain.setValueAtTime(0.24, now + 0.12);
-        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        gain2.gain.setValueAtTime(0.26, now + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
         osc2.connect(gain2);
         gain2.connect(ctx.destination);
         osc2.start(now + 0.12);
-        osc2.stop(now + 0.6);
+        osc2.stop(now + 0.65);
       } catch (e) {
         console.warn('Audio chime warning:', e);
       }
     }
 
-    // Toggle Audio
     soundToggleBtn.addEventListener('click', () => {
       soundEnabled = !soundEnabled;
       if (soundEnabled) {
         soundIcon.textContent = '🔔';
         soundText.textContent = 'Audio ON';
         playArrivalChime();
-        showToast('Notification sound enabled', '🔔');
+        showToast('Notification chime enabled', '🔔');
       } else {
         soundIcon.textContent = '🔕';
         soundText.textContent = 'Audio OFF';
-        showToast('Notification sound muted', '🔕');
+        showToast('Notification chime muted', '🔕');
       }
     });
-
-    // Helper: Generate random 5-character alphanumeric ID (e.g., usr8492)
-    function generateRandomTag() {
-      const rand = Math.random().toString(36).substring(2, 7);
-      return `usr${rand}`;
-    }
-
-    // Helper: Construct alias from base email and tag
-    function makeAlias(baseEmail, tag) {
-      if (!baseEmail || !baseEmail.includes('@')) return '';
-      const parts = baseEmail.split('@');
-      const localPart = parts[0].split('+')[0]; // strip any existing plus tag
-      const domain = parts[1];
-      return `${localPart}+${tag}@${domain}`;
-    }
 
     // Copy to clipboard helper
     async function copyToClipboard(text, feedbackBtn, successLabel = 'Copied!') {
@@ -607,7 +646,6 @@
       }
     }
 
-    // Relative date formatter (e.g., "Just now", "18s ago", "2m ago")
     function formatRelativeTime(isoStr) {
       if (!isoStr) return { relative: 'Just now', exact: '' };
       try {
@@ -631,7 +669,6 @@
       }
     }
 
-    // HTML sanitizer
     function escapeHtml(str) {
       if (!str) return '';
       return String(str)
@@ -642,18 +679,17 @@
         .replace(/'/g, '&#039;');
     }
 
-    // Render message row
+    // Render single message item
     function renderMessageRow(email, isBrandNew = false) {
       const timeInfo = formatRelativeTime(email.date);
-      const service = email.service || { name: 'Service', bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'EM' };
+      const service = email.service || { name: 'Email', bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'EM' };
 
       const row = document.createElement('div');
-      row.className = `p-4 sm:px-6 hover:bg-slate-50/80 transition-all ${isBrandNew ? 'animate-arrival-flash bg-emerald-50/40' : ''}`;
+      row.className = `p-4 sm:px-6 hover:bg-slate-50/80 transition-all ${isBrandNew ? 'animate-arrival-flash bg-emerald-50/50' : ''}`;
       row.id = `msg-row-${email.uid}`;
 
-      // OTP Pill block
       const otpSnippet = email.otp ? `
-        <div class="inline-flex items-center gap-2 bg-amber-50 border border-amber-300 rounded-xl px-2.5 py-1 text-slate-900 shadow-2xs">
+        <div class="inline-flex items-center gap-2 bg-amber-50 border-2 border-amber-400 rounded-xl px-2.5 py-1 text-slate-900 shadow-sm animate-glow">
           <span class="font-mono font-extrabold text-base sm:text-lg tracking-widest text-slate-900 select-all">
             ${escapeHtml(email.otp)}
           </span>
@@ -673,7 +709,6 @@
         <span class="text-xs text-slate-400 italic">No code extracted</span>
       `;
 
-      // Clean snippet preview
       const previewText = email.snippet || email.bodyText || '(Empty message)';
 
       row.innerHTML = `
@@ -689,7 +724,7 @@
                 <span class="font-bold text-slate-900 text-sm sm:text-base leading-tight">
                   ${escapeHtml(service.name)}
                 </span>
-                ${isBrandNew ? '<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">NEW</span>' : ''}
+                ${isBrandNew ? '<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-500 text-white uppercase tracking-wider animate-bounce">LIVE NEW</span>' : ''}
               </div>
               <p class="text-xs text-slate-500 truncate font-mono" title="${escapeHtml(email.fromAddress || email.from)}">
                 ${escapeHtml(email.fromAddress || email.from)}
@@ -726,7 +761,7 @@
             <!-- "View Full Email" Button -->
             <button 
               type="button" 
-              onclick="openModal(${email.uid})"
+              onclick="openMessageModal(${email.uid})"
               class="px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer shrink-0"
             >
               <span>View Full Email</span>
@@ -742,7 +777,7 @@
       return row;
     }
 
-    // Render feed based on current filter & emails
+    // Render feed
     function renderFeed() {
       const query = (feedFilterInput.value || '').trim().toLowerCase();
       messagesList.innerHTML = '';
@@ -767,15 +802,14 @@
 
       radarEmptyState.classList.add('hidden');
       filtered.forEach(email => {
-        const isFresh = knownUids.has(email.uid);
-        messagesList.appendChild(renderMessageRow(email, isFresh));
+        messagesList.appendChild(renderMessageRow(email, email._isNew));
       });
     }
 
     feedFilterInput.addEventListener('input', renderFeed);
 
-    // Modal popup logic
-    window.openModal = function(uid) {
+    // Modal popup: View Message
+    window.openMessageModal = function(uid) {
       const email = currentEmails.find(e => String(e.uid) === String(uid));
       if (!email) return;
 
@@ -797,7 +831,7 @@
 
       modalSubject.textContent = email.subject || '(No Subject)';
       modalFrom.textContent = email.fromAddress ? `${email.from} <${email.fromAddress}>` : email.from;
-      modalTo.textContent = email.to || currentAlias;
+      modalTo.textContent = email.to || (activeAccount ? activeAccount.email : '');
       modalExactDate.textContent = new Date(email.date).toLocaleString();
       modalBodyText.textContent = email.bodyText || email.snippet || '(Empty body)';
       modalUidLabel.textContent = `UID: ${email.uid}`;
@@ -808,135 +842,235 @@
       document.body.style.overflow = 'hidden';
     };
 
-    window.closeModal = function() {
+    window.closeMessageModal = function() {
       messageModal.classList.add('hidden');
       document.body.style.overflow = 'auto';
     };
 
-    modalCloseBtn.addEventListener('click', closeModal);
-    messageModal.addEventListener('click', (e) => {
-      if (e.target === messageModal) closeModal();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !messageModal.classList.contains('hidden')) {
-        closeModal();
+    // Modal popup: Select from List
+    window.openPoolModal = function() {
+      renderPoolModalList();
+      poolModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closePoolModal = function() {
+      poolModal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    };
+
+    function renderPoolModalList() {
+      const q = (poolModalSearch.value || '').trim().toLowerCase();
+      poolModalList.innerHTML = '';
+
+      const filtered = q
+        ? poolList.filter(a => a.email.toLowerCase().includes(q))
+        : poolList;
+
+      if (filtered.length === 0) {
+        poolModalList.innerHTML = `<div class="py-6 text-center text-xs text-slate-400">No accounts match search.</div>`;
+        return;
       }
-    });
 
-    // Fetch emails strictly for this user's unique alias & session
-    async function fetchMessages(silent = false) {
-      if (!isConfigured || !currentAlias) return;
+      filtered.forEach(acc => {
+        const isCurrent = activeAccount && String(acc.id) === String(activeAccount.id);
+        const item = document.createElement('div');
+        item.className = `p-3 rounded-xl flex items-center justify-between gap-2 hover:bg-slate-50 transition-colors cursor-pointer ${isCurrent ? 'bg-emerald-50/70 border border-emerald-200' : ''}`;
+        item.onclick = () => {
+          selectAccount(acc.id);
+          closePoolModal();
+        };
 
-      if (!silent) {
-        manualRefreshIcon.classList.add('animate-spin');
-      }
+        item.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs font-bold text-slate-900 truncate">${escapeHtml(acc.email)}</span>
+              ${isCurrent ? '<span class="px-2 py-0.2 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">ACTIVE</span>' : ''}
+            </div>
+            <span class="text-[10px] text-slate-400 font-mono">ID: ${acc.id.slice(0, 10)}...</span>
+          </div>
+          <button 
+            type="button" 
+            class="px-3 py-1.5 ${isCurrent ? 'bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'} text-xs font-semibold rounded-lg shrink-0"
+          >
+            ${isCurrent ? 'Selected' : 'Use This'}
+          </button>
+        `;
+        poolModalList.appendChild(item);
+      });
+    }
 
-      try {
-        const params = new URLSearchParams({
-          alias: currentAlias,
-          since: sessionTimestamp,
-          limit: '25'
-        });
+    poolModalSearch.addEventListener('input', renderPoolModalList);
+    selectFromListBtn.addEventListener('click', openPoolModal);
 
-        const res = await fetch(`/api/emails?${params.toString()}`);
-        const data = await res.json();
+    // ================= REAL-TIME WEBSOCKET (SOCKET.IO) CLIENT =================
+    function initSocket() {
+      // Connect to same host & port
+      socket = io();
 
-        if (res.ok && data.success) {
-          const fetched = data.emails || [];
+      socket.on('connect', () => {
+        console.log('[Socket] Connected with ID:', socket.id);
+        socketIdLabel.textContent = socket.id.slice(0, 8);
+        socketStatusBadge.className = 'px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 uppercase tracking-wider flex items-center gap-1';
+        socketStatusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>WS Connected</span>';
 
-          // Check for newly arrived messages
-          let newCount = 0;
-          fetched.forEach(item => {
-            if (!knownUids.has(item.uid)) {
-              newCount++;
-              knownUids.add(item.uid);
+        // If we already have an active account, emit 'watch-inbox' immediately
+        if (activeAccount && activeAccount.id) {
+          emitWatchInbox(activeAccount.id);
+        }
+      });
+
+      socket.on('disconnect', () => {
+        console.log('[Socket] Disconnected');
+        socketIdLabel.textContent = 'Disconnected';
+        socketStatusBadge.className = 'px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded-full border border-amber-200 uppercase tracking-wider flex items-center gap-1';
+        socketStatusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span><span>Reconnecting...</span>';
+        idleStatusTag.textContent = 'Reconnecting...';
+        idleStatusTag.className = 'font-bold text-amber-600';
+      });
+
+      // Watch status updates from backend IDLE engine
+      socket.on('watch-status', (payload) => {
+        console.log('[Socket] watch-status received:', payload);
+        if (payload.success) {
+          if (payload.status === 'listening') {
+            liveStatusPill.className = 'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-4 shadow-2xs';
+            liveStatusText.textContent = `Push Active: Listening to ${payload.email} via ImapFlow IDLE`;
+            idleStatusTag.textContent = 'Active (IDLE Push)';
+            idleStatusTag.className = 'font-bold text-emerald-700';
+          } else if (payload.status === 'connecting') {
+            liveStatusPill.className = 'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold mb-4 shadow-2xs';
+            liveStatusText.textContent = `Connecting to ${payload.email}...`;
+            idleStatusTag.textContent = 'Connecting...';
+            idleStatusTag.className = 'font-bold text-blue-600';
+          }
+        } else {
+          liveStatusPill.className = 'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold mb-4 shadow-2xs';
+          liveStatusText.textContent = payload.error || 'IMAP IDLE Error';
+          idleStatusTag.textContent = 'Error';
+          idleStatusTag.className = 'font-bold text-rose-600';
+          showToast(payload.error || 'Failed to watch inbox', '✕');
+        }
+      });
+
+      socket.on('watch-error', (payload) => {
+        console.warn('[Socket] watch-error:', payload);
+        liveStatusPill.className = 'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold mb-4 shadow-2xs';
+        liveStatusText.textContent = payload.error || 'Connection Failed';
+        idleStatusTag.textContent = 'Connection Failed';
+        idleStatusTag.className = 'font-bold text-rose-600';
+      });
+
+      // Initial batch of recent emails (within last 5 minutes)
+      socket.on('initial-emails', (payload) => {
+        console.log('[Socket] initial-emails received:', payload);
+        if (payload && Array.isArray(payload.emails)) {
+          payload.emails.forEach(em => {
+            if (!knownUids.has(em.uid)) {
+              knownUids.add(em.uid);
+              currentEmails.push(em);
             }
           });
-
-          if (newCount > 0 && currentEmails.length > 0) {
-            playArrivalChime();
-            showToast(`New email received! (${newCount} new)`, '🔔');
-          }
-
-          currentEmails = fetched;
           renderFeed();
-        } else {
-          if (data.configured === false) {
-            isConfigured = false;
-            unconfiguredState.classList.remove('hidden');
-            radarEmptyState.classList.add('hidden');
-          }
         }
-      } catch (err) {
-        console.warn('Fetch messages error:', err);
-      } finally {
-        manualRefreshIcon.classList.remove('animate-spin');
-      }
+      });
+
+      // KEY EVENT: 'new-email' - Real-Time Push from ImapFlow IDLE
+      socket.on('new-email', (emailData) => {
+        console.log('[Socket] REAL-TIME NEW EMAIL PUSH:', emailData);
+        if (!emailData || !emailData.uid) return;
+
+        // Prevent duplicates
+        if (knownUids.has(emailData.uid)) {
+          console.log('[Socket] Duplicate UID skipped:', emailData.uid);
+          return;
+        }
+
+        knownUids.add(emailData.uid);
+        emailData._isNew = true;
+
+        // Place at top of feed
+        currentEmails.unshift(emailData);
+
+        // 1. Instantly play audio chime
+        playArrivalChime();
+
+        // 2. Render and highlight card
+        renderFeed();
+
+        // 3. Highlight OTP or show toast
+        if (emailData.otp) {
+          showToast(`New Code Received: ${emailData.otp}`, '🔑');
+        } else {
+          showToast(`New email received from ${emailData.from}`, '📬');
+        }
+      });
     }
 
-    // 4-Second Dynamic Countdown Engine
-    function startCountdownEngine() {
-      if (countdownInterval) clearInterval(countdownInterval);
-
-      cycleTimeRemaining = REFRESH_CYCLE_MS;
-
-      countdownInterval = setInterval(() => {
-        cycleTimeRemaining -= 100;
-
-        if (cycleTimeRemaining <= 0) {
-          cycleTimeRemaining = REFRESH_CYCLE_MS;
-          countdownLabel.textContent = 'Checking inbox...';
-          countdownProgressBar.style.width = '100%';
-          fetchMessages(true);
-        } else {
-          const sec = Math.ceil(cycleTimeRemaining / 1000);
-          countdownLabel.textContent = `Auto-refreshing in ${sec}s...`;
-          const pct = ((cycleTimeRemaining) / REFRESH_CYCLE_MS) * 100;
-          countdownProgressBar.style.width = `${pct}%`;
-        }
-      }, 100);
+    // Emit 'watch-inbox' to backend Socket.io
+    function emitWatchInbox(emailId) {
+      if (!socket || !socket.connected) {
+        console.log('[Socket] Queueing watch-inbox for when connected...');
+        return;
+      }
+      console.log(`[Socket] Emitting 'watch-inbox' for emailId: ${emailId}`);
+      socket.emit('watch-inbox', { emailId: emailId });
     }
 
-    // Generate and activate a new session alias
-    function setupAlias(createNew = false) {
-      let savedTag = localStorage.getItem('tempmail_tag');
-      let savedTimestamp = localStorage.getItem('tempmail_session_start');
+    // Activate selected account
+    function activateAccount(acc) {
+      activeAccount = acc;
+      localStorage.setItem('tempmail_account_id', acc.id);
 
-      if (createNew || !savedTag) {
-        savedTag = generateRandomTag();
-        savedTimestamp = Date.now().toString();
-        localStorage.setItem('tempmail_tag', savedTag);
-        localStorage.setItem('tempmail_session_start', savedTimestamp);
-      }
+      activeAddressDisplay.textContent = acc.email;
+      currentAccountIdLabel.textContent = acc.id.slice(0, 8);
 
-      currentTag = savedTag;
-      sessionTimestamp = parseInt(savedTimestamp, 10) || Date.now();
-      currentAlias = makeAlias(baseGmailAddress, currentTag);
-
-      // Update UI displays
-      activeAddressDisplay.textContent = currentAlias || 'Configuring...';
-      currentTagDisplay.textContent = `+${currentTag}`;
-      sessionTimestampLabel.textContent = `Session started at ${new Date(sessionTimestamp).toLocaleTimeString()}`;
-
-      // Reset inbox state
       currentEmails = [];
       knownUids.clear();
       renderFeed();
 
-      // Reset timer
-      cycleTimeRemaining = REFRESH_CYCLE_MS;
+      // Emit watch-inbox over WebSocket
+      emitWatchInbox(acc.id);
     }
 
-    // 1. "Copy Email" Button
+    // Select account by ID
+    async function selectAccount(id) {
+      try {
+        const res = await fetch(`/api/assigned?currentId=${encodeURIComponent(id)}`);
+        const data = await res.json();
+        if (data.success && data.account) {
+          activateAccount(data.account);
+          showToast(`Switched to ${data.account.email}`, '✨');
+        }
+      } catch (err) {
+        console.error('Select account error:', err);
+      }
+    }
+
+    // Switch to next random email
+    async function switchNextRandom() {
+      try {
+        const curId = activeAccount ? activeAccount.id : '';
+        const res = await fetch(`/api/assigned/next?currentId=${encodeURIComponent(curId)}`);
+        const data = await res.json();
+        if (data.success && data.account) {
+          activateAccount(data.account);
+          showToast(`Assigned new email: ${data.account.email}`, '✨');
+        }
+      } catch (err) {
+        console.error('Next random error:', err);
+      }
+    }
+
+    // Copy Address Button
     copyAddressBtn.addEventListener('click', async () => {
-      if (!currentAlias) {
-        showToast('Please configure Gmail in Admin first', '⚠️');
+      if (!activeAccount || !activeAccount.email) {
+        showToast('No active email to copy', '⚠️');
         return;
       }
 
-      await copyToClipboard(currentAlias, null);
+      await copyToClipboard(activeAccount.email, null);
 
-      // Visual feedback on button
       copyBtnText.textContent = 'Copied!';
       copyIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>';
       copyAddressBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
@@ -949,52 +1083,42 @@
         copyAddressBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
       }, 2400);
 
-      showToast(`Copied ${currentAlias}! Ready for verification codes.`, '⚡');
+      showToast(`Copied ${activeAccount.email}! Ready for OTPs.`, '⚡');
     });
 
-    // 2. "Change / New Address" Button
-    changeAddressBtn.addEventListener('click', () => {
-      setupAlias(true);
-      showToast(`Generated new private alias: +${currentTag}`, '✨');
-      fetchMessages(false);
-    });
+    changeAddressBtn.addEventListener('click', switchNextRandom);
 
-    // 3. "Refresh Inbox" Manual Button
-    manualRefreshBtn.addEventListener('click', () => {
-      cycleTimeRemaining = REFRESH_CYCLE_MS;
-      fetchMessages(false);
-      showToast('Checking for new emails...', '🔄');
-    });
-
-    // Initialization
+    // Initialize application
     async function init() {
-      try {
-        const res = await fetch('/api/config');
-        const config = await res.json();
+      // 1. Start Socket.io connection
+      initSocket();
 
-        if (config.configured && config.user) {
-          isConfigured = true;
-          baseGmailAddress = config.user;
+      // 2. Fetch assigned account info from pool
+      try {
+        const savedId = localStorage.getItem('tempmail_account_id');
+        const url = savedId ? `/api/assigned?currentId=${encodeURIComponent(savedId)}` : '/api/assigned';
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.configured && data.account) {
+          poolList = data.poolList || [];
+          navPoolCount.textContent = `${data.poolCount} pool`;
 
           unconfiguredState.classList.add('hidden');
           radarEmptyState.classList.remove('hidden');
 
-          // Initialize or restore alias session
-          setupAlias(false);
-
-          // Initial fetch
-          await fetchMessages(false);
-
-          // Start 4-second continuous countdown engine
-          startCountdownEngine();
+          activateAccount(data.account);
         } else {
-          isConfigured = false;
-          activeAddressDisplay.textContent = 'Not Configured (Visit Admin)';
+          activeAddressDisplay.textContent = 'No Accounts in Pool';
           unconfiguredState.classList.remove('hidden');
           radarEmptyState.classList.add('hidden');
           copyAddressBtn.disabled = true;
           changeAddressBtn.disabled = true;
-          manualRefreshBtn.disabled = true;
+          selectFromListBtn.disabled = true;
+          navPoolCount.textContent = '0 pool';
+          liveStatusText.textContent = 'No accounts in pool. Please visit /admin.';
+          idleStatusTag.textContent = 'Idle (No Accounts)';
+          idleStatusTag.className = 'font-bold text-slate-500';
         }
       } catch (err) {
         console.error('Init error:', err);

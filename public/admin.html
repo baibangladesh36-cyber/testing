@@ -17,7 +17,7 @@
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Configuration - Gmail IMAP Tester</title>
+  <title>Admin - Gmail Account Pool Management</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -41,305 +41,290 @@
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
 
   <!-- Top Navigation Bar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Title -->
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-          M
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm shadow-blue-200">
+          ⚙️
         </div>
         <div>
-          <h1 class="font-semibold text-slate-900 text-base leading-tight">Gmail IMAP Tester</h1>
-          <p class="text-xs text-slate-500">ImapFlow & Express Test Client</p>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-slate-900 text-base leading-tight tracking-tight">Gmail Accounts Pool</h1>
+            <span id="pool-count-badge" class="px-2.5 py-0.5 text-xs font-bold bg-blue-100 text-blue-800 rounded-full border border-blue-200">0 accounts</span>
+          </div>
+          <p class="text-xs text-slate-500">Multi-Account Pool Management &bull; On-Demand IMAP</p>
         </div>
       </div>
 
       <!-- Navigation Tabs -->
-      <nav class="flex items-center space-x-1 sm:space-x-2">
-        <a href="/" id="nav-inbox-link" class="px-3 py-2 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <nav class="flex items-center space-x-2">
+        <a 
+          href="/" 
+          id="nav-inbox-link" 
+          class="px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors flex items-center gap-1.5"
+        >
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
           </svg>
-          <span>Inbox</span>
-        </a>
-        <a href="/admin" id="nav-admin-link" class="px-3 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-700 font-semibold flex items-center gap-1.5 border border-blue-200/60">
-          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-          </svg>
-          <span>Admin Setup</span>
+          <span>Go to Temp Mail</span>
         </a>
       </nav>
+
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:px-6">
-    
-    <!-- Page Title & Header -->
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div>
-        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Admin Configuration</h2>
-        <p class="text-sm text-slate-600 mt-1">Configure your Gmail IMAP connection parameters to fetch live emails.</p>
+  <!-- Main Container -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:px-6">
+
+    <!-- Alert / Toast Banner -->
+    <div id="alert-box" class="hidden mb-6 p-4 rounded-xl border text-sm transition-all shadow-2xs"></div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Accounts</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+        </div>
+        <div id="stat-total" class="text-2xl font-extrabold text-slate-900 font-mono">0</div>
+        <p class="text-xs text-slate-400 mt-0.5">Stored in database pool</p>
       </div>
 
-      <!-- Quick status indicator -->
-      <div id="status-pill" class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-        <span class="w-2 h-2 rounded-full bg-slate-400 mr-2" id="status-dot"></span>
-        <span id="status-text">Checking status...</span>
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Active &amp; Ready</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        </div>
+        <div id="stat-active" class="text-2xl font-extrabold text-emerald-700 font-mono">0</div>
+        <p class="text-xs text-slate-400 mt-0.5">Available for visitors</p>
       </div>
+
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">Inactive / Untested</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+        </div>
+        <div id="stat-inactive" class="text-2xl font-extrabold text-amber-700 font-mono">0</div>
+        <p class="text-xs text-slate-400 mt-0.5">Needs connection check</p>
+      </div>
+
     </div>
 
-    <!-- Alert / Message Banner -->
-    <div id="alert-box" class="hidden mb-6 p-4 rounded-lg border text-sm transition-all"></div>
+    <!-- Two-Column Layout: Bulk Import + Single Add -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Column 1: Bulk Import Card (Supports 100+ accounts at once) -->
+      <div class="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+              📋
+            </div>
+            <h2 class="text-lg font-bold text-slate-900">Bulk Import Accounts Pool</h2>
+          </div>
+          <span class="text-xs text-slate-500 font-mono">email:app_password</span>
+        </div>
 
-      <!-- Form Column -->
-      <div class="lg:col-span-7 space-y-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-          <h3 class="text-base font-semibold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
-            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-            Gmail IMAP Credentials
+        <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+          Paste multiple real Gmail accounts at once (one per line). Format: <code class="bg-slate-100 text-slate-900 px-1.5 py-0.5 rounded font-mono font-bold">username@gmail.com:app_password_here</code>. The system easily handles pools of 100+ distinct accounts.
+        </p>
+
+        <form id="bulk-import-form" class="space-y-4">
+          <div class="relative">
+            <textarea 
+              id="bulk-textarea"
+              rows="6"
+              placeholder="account1@gmail.com:abcd efgh ijkl mnop
+account2@gmail.com:qrst uvwx yzab cdef
+account3@gmail.com:ghij klmn opqr stuv"
+              class="w-full p-3.5 text-xs font-mono bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 leading-relaxed shadow-inner"
+              required
+            ></textarea>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Spaces inside 16-char app passwords are automatically cleaned.</span>
+            </div>
+
+            <button 
+              type="submit" 
+              id="bulk-submit-btn"
+              class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+              </svg>
+              <span id="bulk-btn-label">Import to Pool</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Column 2: Single Account Add Form & Instructions -->
+      <div class="lg:col-span-4 space-y-6">
+        
+        <!-- Add Single Account Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5">
+            <span>+</span> Add Single Account
           </h3>
-
-          <form id="imap-config-form" class="space-y-4">
-            <!-- 1. Gmail Address -->
+          <form id="single-add-form" class="space-y-3">
             <div>
-              <label for="gmail-user" class="block text-sm font-medium text-slate-700 mb-1">
-                Gmail Address <span class="text-red-500">*</span>
-              </label>
-              <div class="relative">
-                <input 
-                  type="email" 
-                  id="gmail-user" 
-                  name="user"
-                  placeholder="e.g. yourname@gmail.com" 
-                  required
-                  class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400 text-slate-900"
-                />
-              </div>
-              <p class="mt-1 text-xs text-slate-500">Your standard Gmail or Google Workspace email address.</p>
-            </div>
-
-            <!-- 2. Gmail App Password -->
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label for="gmail-pass" class="block text-sm font-medium text-slate-700">
-                  Gmail App Password <span class="text-red-500">*</span>
-                </label>
-                <button type="button" id="toggle-password-visibility" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                  Show
-                </button>
-              </div>
-              <div class="relative">
-                <input 
-                  type="password" 
-                  id="gmail-pass" 
-                  name="pass"
-                  placeholder="16-character app password (e.g. abcd efgh ijkl mnop)" 
-                  required
-                  autocomplete="off"
-                  class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400 text-slate-900 font-mono"
-                />
-              </div>
-              <!-- Note callout as requested -->
-              <div class="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-md flex items-start gap-2 text-xs text-amber-800">
-                <svg class="w-4 h-4 text-amber-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                </svg>
-                <span><strong>Note:</strong> Use a 16-character <em>App Password</em>, NOT your regular Google account password. Regular passwords are blocked by Google IMAP.</span>
-              </div>
-            </div>
-
-            <!-- 3. IMAP Host & Port -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              <div class="sm:col-span-2">
-                <label for="imap-host" class="block text-sm font-medium text-slate-700 mb-1">
-                  IMAP Host
-                </label>
-                <input 
-                  type="text" 
-                  id="imap-host" 
-                  name="host"
-                  value="imap.gmail.com" 
-                  required
-                  class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label for="imap-port" class="block text-sm font-medium text-slate-700 mb-1">
-                  Port
-                </label>
-                <input 
-                  type="number" 
-                  id="imap-port" 
-                  name="port"
-                  value="993" 
-                  required
-                  class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 font-mono"
-                />
-              </div>
-            </div>
-
-            <!-- SSL/TLS Checkbox -->
-            <div class="flex items-center pt-1">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Gmail Address</label>
               <input 
-                type="checkbox" 
-                id="imap-secure" 
-                name="secure" 
-                checked 
-                class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                type="email" 
+                id="single-email"
+                placeholder="user@gmail.com" 
+                required
+                class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
               />
-              <label for="imap-secure" class="ml-2 text-xs text-slate-600">
-                Use Secure TLS/SSL Connection (Recommended for port 993)
-              </label>
             </div>
-
-            <!-- Submit Button & Action Buttons -->
-            <div class="pt-4 flex flex-col sm:flex-row items-center gap-3">
-              <button 
-                type="submit" 
-                id="save-connect-btn"
-                class="w-full sm:w-auto flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <span id="btn-spinner" class="hidden">
-                  <svg class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </span>
-                <span id="btn-label">Save & Connect</span>
-              </button>
-
-              <button 
-                type="button" 
-                id="test-again-btn"
-                class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer hidden"
-              >
-                Re-test Connection
-              </button>
-
-              <button 
-                type="button" 
-                id="disconnect-btn"
-                class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer hidden"
-              >
-                Clear Credentials
-              </button>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">App Password (16 chars)</label>
+              <input 
+                type="text" 
+                id="single-pass"
+                placeholder="abcd efgh ijkl mnop" 
+                required
+                class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+              />
             </div>
+            <button 
+              type="submit" 
+              class="w-full px-4 py-2 bg-slate-900 hover:bg-black text-white font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+            >
+              Add Account
+            </button>
           </form>
         </div>
-      </div>
 
-      <!-- Right Column: Status & Help Guidelines -->
-      <div class="lg:col-span-5 space-y-6">
-
-        <!-- Status Card -->
-        <div id="status-card" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-          <h3 class="text-sm font-semibold text-slate-900 mb-3 uppercase tracking-wider text-xs">
-            Connection Diagnostics
-          </h3>
-
-          <div class="space-y-3">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-sm">
-              <span class="text-slate-500">Status:</span>
-              <span id="diag-status" class="font-medium text-slate-700">Not Configured</span>
-            </div>
-
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-sm">
-              <span class="text-slate-500">Account:</span>
-              <span id="diag-account" class="font-mono text-xs text-slate-800 truncate max-w-[200px]">None</span>
-            </div>
-
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-sm">
-              <span class="text-slate-500">Host / Port:</span>
-              <span id="diag-host" class="font-mono text-xs text-slate-800">imap.gmail.com:993</span>
-            </div>
-
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-slate-500">Last Verified:</span>
-              <span id="diag-time" class="text-xs text-slate-500">Never</span>
-            </div>
-          </div>
-
-          <div id="inbox-quicklink" class="mt-5 pt-4 border-t border-slate-100 hidden">
-            <a href="/" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors">
-              <span>Go to Live Inbox</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-              </svg>
-            </a>
-          </div>
-        </div>
-
-        <!-- Google App Password Instructions -->
-        <div class="bg-blue-50/70 border border-blue-200/80 rounded-xl p-5 text-sm text-slate-700">
-          <h4 class="font-semibold text-blue-950 flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            How to get a Gmail App Password
+        <!-- App Password Guide -->
+        <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 text-xs text-slate-700">
+          <h4 class="font-bold text-blue-950 mb-1.5 flex items-center gap-1.5">
+            <span>🔑</span> Google App Passwords
           </h4>
-          <ol class="list-decimal list-inside space-y-1.5 text-xs text-slate-600 leading-relaxed">
-            <li>Make sure <strong>2-Step Verification</strong> is enabled in your Google Account.</li>
-            <li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" class="text-blue-700 underline font-medium hover:text-blue-900">Google App Passwords</a>.</li>
-            <li>Enter an app name like <code class="bg-blue-100/70 px-1 py-0.5 rounded text-blue-900 font-mono">ImapTest</code> and click <strong>Create</strong>.</li>
-            <li>Copy the <strong>16-character code</strong> and paste it into the field above.</li>
-          </ol>
+          <p class="text-[11px] text-slate-600 mb-2 leading-relaxed">
+            Google IMAP requires 16-character App Passwords. Standard Google login passwords will be blocked.
+          </p>
+          <a 
+            href="https://myaccount.google.com/apppasswords" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="inline-flex items-center gap-1 text-blue-700 font-bold hover:underline"
+          >
+            <span>Open Google App Passwords</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+            </svg>
+          </a>
         </div>
 
       </div>
+
     </div>
+
+    <!-- Accounts Table Section -->
+    <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-12">
+      
+      <!-- Table Header & Filter Toolbar -->
+      <div class="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/80">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Stored Accounts Pool</h3>
+          <p class="text-xs text-slate-500">Every account uses on-demand IMAP connections that close immediately after reading.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input 
+            type="text" 
+            id="table-search" 
+            placeholder="Search accounts..." 
+            class="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 shadow-2xs"
+          />
+          <button 
+            type="button" 
+            id="refresh-table-btn"
+            class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors border border-slate-200 flex items-center gap-1 cursor-pointer"
+          >
+            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>Reload</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Accounts Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-200 bg-slate-100/60 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
+              <th class="py-3 px-4">#</th>
+              <th class="py-3 px-4">Gmail Address</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4">Last Tested / Diagnostics</th>
+              <th class="py-3 px-4">Last Used</th>
+              <th class="py-3 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="accounts-tbody" class="divide-y divide-slate-200">
+            <!-- Populated via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="table-empty-state" class="hidden py-16 px-6 text-center">
+        <div class="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          📭
+        </div>
+        <h4 class="text-sm font-bold text-slate-800 mb-1">No Accounts in Pool</h4>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto">
+          Paste your accounts above to populate the pool. The public Temp Mail frontend will automatically assign available accounts to users.
+        </p>
+      </div>
+
+    </section>
+
   </main>
 
   <!-- Footer -->
   <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500 mt-auto">
-    Gmail IMAP Testing Application &bull; Powered by Express, ImapFlow &amp; Mailparser
+    Multi-Account Gmail Temp Mail Platform &bull; Zero-leak On-Demand IMAP Engine
   </footer>
 
-  <!-- Page Script -->
+  <!-- Script -->
   <script>
-    const form = document.getElementById('imap-config-form');
-    const userInput = document.getElementById('gmail-user');
-    const passInput = document.getElementById('gmail-pass');
-    const hostInput = document.getElementById('imap-host');
-    const portInput = document.getElementById('imap-port');
-    const secureInput = document.getElementById('imap-secure');
-    const togglePassBtn = document.getElementById('toggle-password-visibility');
+    let allAccounts = [];
 
-    const saveBtn = document.getElementById('save-connect-btn');
-    const btnSpinner = document.getElementById('btn-spinner');
-    const btnLabel = document.getElementById('btn-label');
-    const testAgainBtn = document.getElementById('test-again-btn');
-    const disconnectBtn = document.getElementById('disconnect-btn');
+    const bulkForm = document.getElementById('bulk-import-form');
+    const bulkTextarea = document.getElementById('bulk-textarea');
+    const bulkSubmitBtn = document.getElementById('bulk-submit-btn');
+    const bulkBtnLabel = document.getElementById('bulk-btn-label');
 
-    const statusPill = document.getElementById('status-pill');
-    const statusDot = document.getElementById('status-dot');
-    const statusText = document.getElementById('status-text');
+    const singleForm = document.getElementById('single-add-form');
+    const singleEmail = document.getElementById('single-email');
+    const singlePass = document.getElementById('single-pass');
 
-    const diagStatus = document.getElementById('diag-status');
-    const diagAccount = document.getElementById('diag-account');
-    const diagHost = document.getElementById('diag-host');
-    const diagTime = document.getElementById('diag-time');
+    const statTotal = document.getElementById('stat-total');
+    const statActive = document.getElementById('stat-active');
+    const statInactive = document.getElementById('stat-inactive');
+    const poolCountBadge = document.getElementById('pool-count-badge');
+
+    const tableSearch = document.getElementById('table-search');
+    const refreshTableBtn = document.getElementById('refresh-table-btn');
+    const accountsTbody = document.getElementById('accounts-tbody');
+    const tableEmptyState = document.getElementById('table-empty-state');
     const alertBox = document.getElementById('alert-box');
-    const inboxQuickLink = document.getElementById('inbox-quicklink');
-
-    // Toggle password visibility
-    togglePassBtn.addEventListener('click', () => {
-      if (passInput.type === 'password') {
-        passInput.type = 'text';
-        togglePassBtn.textContent = 'Hide';
-      } else {
-        passInput.type = 'password';
-        togglePassBtn.textContent = 'Show';
-      }
-    });
 
     function showAlert(msg, type = 'error') {
-      alertBox.className = 'mb-6 p-4 rounded-lg border text-sm transition-all block ';
+      alertBox.className = 'mb-6 p-4 rounded-xl border text-sm transition-all shadow-2xs block ';
       if (type === 'success') {
         alertBox.className += 'bg-emerald-50 border-emerald-200 text-emerald-800';
       } else if (type === 'warning') {
@@ -355,175 +340,214 @@
       alertBox.innerHTML = '';
     }
 
-    function setUIStatus(status, user = '', lastChecked = null, lastError = null) {
-      if (status === 'connected') {
-        statusPill.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
-        statusDot.className = 'w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse';
-        statusText.textContent = 'Connected';
-
-        diagStatus.className = 'font-semibold text-emerald-600';
-        diagStatus.textContent = 'Connected';
-        testAgainBtn.classList.remove('hidden');
-        disconnectBtn.classList.remove('hidden');
-        inboxQuickLink.classList.remove('hidden');
-      } else if (status === 'failed') {
-        statusPill.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200';
-        statusDot.className = 'w-2 h-2 rounded-full bg-rose-500 mr-2';
-        statusText.textContent = 'Failed';
-
-        diagStatus.className = 'font-semibold text-rose-600';
-        diagStatus.textContent = 'Connection Failed';
-        testAgainBtn.classList.remove('hidden');
-        disconnectBtn.classList.remove('hidden');
-        inboxQuickLink.classList.add('hidden');
-      } else if (status === 'testing') {
-        statusPill.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200';
-        statusDot.className = 'w-2 h-2 rounded-full bg-blue-500 mr-2 animate-ping';
-        statusText.textContent = 'Connecting...';
-
-        diagStatus.className = 'font-medium text-blue-600';
-        diagStatus.textContent = 'Testing connection...';
-      } else {
-        statusPill.className = 'inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200';
-        statusDot.className = 'w-2 h-2 rounded-full bg-slate-400 mr-2';
-        statusText.textContent = 'Not Configured';
-
-        diagStatus.className = 'font-medium text-slate-500';
-        diagStatus.textContent = 'Not Configured';
-        testAgainBtn.classList.add('hidden');
-        disconnectBtn.classList.add('hidden');
-        inboxQuickLink.classList.add('hidden');
-      }
-
-      diagAccount.textContent = user || 'None';
-      if (lastChecked) {
-        diagTime.textContent = new Date(lastChecked).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      } else {
-        diagTime.textContent = 'Never';
-      }
-
-      if (lastError && status === 'failed') {
-        showAlert(`<strong>Connection Failed:</strong> ${lastError}`, 'error');
-      }
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // Load initial config from server
-    async function loadConfig() {
+    // Load accounts from API
+    async function loadAccounts() {
       try {
-        const res = await fetch('/api/config');
+        const res = await fetch('/api/accounts');
         const data = await res.json();
-
-        if (data.configured) {
-          userInput.value = data.user || '';
-          hostInput.value = data.host || 'imap.gmail.com';
-          portInput.value = data.port || 993;
-          secureInput.checked = data.secure !== false;
-          diagHost.textContent = `${data.host}:${data.port}`;
-          setUIStatus(data.status, data.user, data.lastChecked, data.lastError);
-        } else {
-          setUIStatus('not_configured');
+        if (data.success) {
+          allAccounts = data.accounts || [];
+          statTotal.textContent = data.total;
+          statActive.textContent = data.active;
+          statInactive.textContent = data.inactive;
+          poolCountBadge.textContent = `${data.total} account${data.total === 1 ? '' : 's'}`;
+          renderTable();
         }
       } catch (err) {
-        console.error('Failed to load config:', err);
-        setUIStatus('not_configured');
+        console.error('Failed to load accounts:', err);
+        showAlert('Failed to load accounts list from server.', 'error');
       }
     }
 
-    // Handle form submit (Save & Connect)
-    form.addEventListener('submit', async (e) => {
+    // Render Table Rows
+    function renderTable() {
+      const q = (tableSearch.value || '').trim().toLowerCase();
+      accountsTbody.innerHTML = '';
+
+      const filtered = q 
+        ? allAccounts.filter(a => a.email.toLowerCase().includes(q))
+        : allAccounts;
+
+      if (filtered.length === 0) {
+        tableEmptyState.classList.remove('hidden');
+        return;
+      }
+
+      tableEmptyState.classList.add('hidden');
+
+      filtered.forEach((acc, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.id = `row-${acc.id}`;
+
+        const statusPill = acc.status === 'active'
+          ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">Active</span>`
+          : `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Inactive</span>`;
+
+        let testInfo = '<span class="text-slate-400">Untested</span>';
+        if (acc.lastTestResult) {
+          const isOk = acc.lastTestResult.success;
+          testInfo = `
+            <div class="flex items-center gap-1.5">
+              <span class="${isOk ? 'text-emerald-600' : 'text-rose-600'} font-semibold">
+                ${isOk ? '✓ Connected' : '✕ Failed'}
+              </span>
+              <span class="text-[10px] text-slate-400">
+                ${new Date(acc.lastTestResult.time).toLocaleTimeString()}
+              </span>
+            </div>
+            ${!isOk ? `<p class="text-[10px] text-rose-500 mt-0.5 truncate max-w-xs" title="${escapeHtml(acc.lastTestResult.message)}">${escapeHtml(acc.lastTestResult.message)}</p>` : ''}
+          `;
+        }
+
+        const lastUsed = acc.lastUsedAt ? new Date(acc.lastUsedAt).toLocaleTimeString() : 'Never';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-slate-400 font-mono">${idx + 1}</td>
+          <td class="py-3 px-4 font-mono font-bold text-slate-800 select-all">
+            ${escapeHtml(acc.email)}
+          </td>
+          <td class="py-3 px-4">${statusPill}</td>
+          <td class="py-3 px-4">${testInfo}</td>
+          <td class="py-3 px-4 text-slate-500 font-mono">${lastUsed}</td>
+          <td class="py-3 px-4 text-right space-x-1.5">
+            <button 
+              type="button" 
+              onclick="testAccount('${acc.id}', this)"
+              class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Test Connection
+            </button>
+            <button 
+              type="button" 
+              onclick="deleteAccount('${acc.id}', '${escapeHtml(acc.email)}')"
+              class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Delete
+            </button>
+          </td>
+        `;
+
+        accountsTbody.appendChild(tr);
+      });
+    }
+
+    tableSearch.addEventListener('input', renderTable);
+    refreshTableBtn.addEventListener('click', loadAccounts);
+
+    // Bulk Import Handler
+    bulkForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       hideAlert();
+      const text = bulkTextarea.value.trim();
+      if (!text) return;
 
-      const user = userInput.value.trim();
-      const pass = passInput.value.trim();
-      const host = hostInput.value.trim() || 'imap.gmail.com';
-      const port = parseInt(portInput.value, 10) || 993;
-      const secure = secureInput.checked;
-
-      if (!user) {
-        showAlert('Please enter your Gmail address.');
-        return;
-      }
-      if (!pass) {
-        showAlert('Please enter your 16-character Gmail App Password.');
-        return;
-      }
-
-      // UI loading state
-      saveBtn.disabled = true;
-      btnSpinner.classList.remove('hidden');
-      btnLabel.textContent = 'Testing & Connecting...';
-      setUIStatus('testing', user);
+      bulkSubmitBtn.disabled = true;
+      bulkBtnLabel.textContent = 'Importing...';
 
       try {
-        const res = await fetch('/api/config', {
+        const res = await fetch('/api/accounts/bulk', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user, pass, host, port, secure })
+          body: JSON.stringify({ data: text })
         });
-
         const data = await res.json();
 
         if (res.ok && data.success) {
-          showAlert(`<strong>Success!</strong> ${data.message} You can now view your live inbox.`, 'success');
-          setUIStatus('connected', user, new Date().toISOString());
+          showAlert(data.message, 'success');
+          bulkTextarea.value = '';
+          await loadAccounts();
         } else {
-          const errMsg = data.error || 'Connection failed. Please check your credentials.';
-          showAlert(`<strong>Connection Error:</strong> ${errMsg}`, 'error');
-          setUIStatus('failed', user, new Date().toISOString(), errMsg);
+          showAlert(data.error || 'Bulk import failed.', 'error');
         }
       } catch (err) {
-        showAlert(`<strong>Network Error:</strong> ${err.message}`, 'error');
-        setUIStatus('failed', user, new Date().toISOString(), err.message);
+        showAlert('Network error during bulk import.', 'error');
       } finally {
-        saveBtn.disabled = false;
-        btnSpinner.classList.add('hidden');
-        btnLabel.textContent = 'Save & Connect';
+        bulkSubmitBtn.disabled = false;
+        bulkBtnLabel.textContent = 'Import to Pool';
       }
     });
 
-    // Re-test existing saved connection
-    testAgainBtn.addEventListener('click', async () => {
-      testAgainBtn.disabled = true;
-      testAgainBtn.textContent = 'Testing...';
-      setUIStatus('testing', userInput.value);
+    // Single Add Handler
+    singleForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
       hideAlert();
+      const email = singleEmail.value.trim();
+      const pass = singlePass.value.trim();
+      if (!email || !pass) return;
 
       try {
-        const res = await fetch('/api/test-connection', { method: 'POST' });
+        const res = await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, appPassword: pass })
+        });
         const data = await res.json();
+
         if (res.ok && data.success) {
-          showAlert(`<strong>Connection Verified:</strong> ${data.message}`, 'success');
-          setUIStatus('connected', userInput.value, new Date().toISOString());
+          showAlert(`Added account: ${email}`, 'success');
+          singleEmail.value = '';
+          singlePass.value = '';
+          await loadAccounts();
         } else {
-          showAlert(`<strong>Connection Failed:</strong> ${data.error || 'Unable to connect.'}`, 'error');
-          setUIStatus('failed', userInput.value, new Date().toISOString(), data.error);
+          showAlert(data.error || 'Failed to add account.', 'error');
         }
       } catch (err) {
-        showAlert(`<strong>Error:</strong> ${err.message}`, 'error');
-        setUIStatus('failed', userInput.value, new Date().toISOString(), err.message);
-      } finally {
-        testAgainBtn.disabled = false;
-        testAgainBtn.textContent = 'Re-test Connection';
+        showAlert('Network error adding account.', 'error');
       }
     });
 
-    // Disconnect and clear credentials
-    disconnectBtn.addEventListener('click', async () => {
-      if (!confirm('Are you sure you want to clear the saved credentials?')) return;
+    // Test specific account connection
+    window.testAccount = async function(id, btn) {
+      const origText = btn.innerHTML;
+      btn.innerHTML = `<span class="animate-spin inline-block mr-1">⏳</span> Testing...`;
+      btn.disabled = true;
+
       try {
-        await fetch('/api/disconnect', { method: 'POST' });
-        userInput.value = '';
-        passInput.value = '';
-        setUIStatus('not_configured');
-        showAlert('Credentials cleared successfully.', 'warning');
-      } catch (err) {
-        showAlert('Failed to clear credentials.', 'error');
-      }
-    });
+        const res = await fetch(`/api/accounts/${id}/test`, { method: 'POST' });
+        const data = await res.json();
 
-    // Initialize
-    loadConfig();
+        if (data.success) {
+          showAlert(`✓ <strong>${data.email}:</strong> Connection verified successfully!`, 'success');
+        } else {
+          showAlert(`✕ <strong>${data.email}:</strong> ${data.error}`, 'error');
+        }
+        await loadAccounts();
+      } catch (err) {
+        showAlert('Connection test timed out or failed.', 'error');
+      } finally {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+      }
+    };
+
+    // Delete account
+    window.deleteAccount = async function(id, email) {
+      if (!confirm(`Are you sure you want to remove ${email} from the accounts pool?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/accounts/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          showAlert(`Removed ${email} from pool.`, 'success');
+          await loadAccounts();
+        } else {
+          showAlert(data.error || 'Failed to delete account.', 'error');
+        }
+      } catch (err) {
+        showAlert('Network error deleting account.', 'error');
+      }
+    };
+
+    // Initial load
+    loadAccounts();
   </script>
 </body>
 </html>
