@@ -17,7 +17,7 @@
     })();
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Receive SMS & Verification Codes Online - Temp Mail</title>
+  <title>Temp Mail - Private Gmail Aliasing &amp; OTP Inbox</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -40,7 +40,7 @@
   <style>
     @keyframes arrivalFlash {
       0% {
-        background-color: rgba(34, 197, 94, 0.2);
+        background-color: rgba(34, 197, 94, 0.22);
         box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
         transform: scale(1.006);
       }
@@ -57,9 +57,9 @@
       animation: arrivalFlash 2.4s ease-out;
     }
     @keyframes pulseRadar {
-      0% { transform: scale(0.92); opacity: 0.8; }
+      0% { transform: scale(0.92); opacity: 0.85; }
       50% { transform: scale(1.15); opacity: 0.3; }
-      100% { transform: scale(0.92); opacity: 0.8; }
+      100% { transform: scale(0.92); opacity: 0.85; }
     }
     .animate-radar {
       animation: pulseRadar 2.2s infinite ease-in-out;
@@ -69,20 +69,20 @@
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
 
   <!-- Top Navigation Bar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       
       <!-- Brand & Title -->
       <div class="flex items-center space-x-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-bold text-xl shadow-sm shadow-emerald-200">
-          📨
+          ⚡
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-extrabold text-slate-900 text-base sm:text-lg leading-tight tracking-tight">Receive SMS / OTP Online</h1>
-            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 uppercase tracking-wider">Live IMAP</span>
+            <h1 class="font-extrabold text-slate-900 text-base sm:text-lg leading-tight tracking-tight">Temp Mail &bull; Private Inbox</h1>
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 uppercase tracking-wider">Plus-Aliased</span>
           </div>
-          <p class="text-xs text-slate-500">Disposable Verification Inbox &bull; Instant Code Extraction</p>
+          <p class="text-xs text-slate-500">Isolated User Sessions &bull; Instant OTP Extraction</p>
         </div>
       </div>
 
@@ -119,50 +119,68 @@
   <!-- Main Container -->
   <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6">
 
-    <!-- 1. Hero Section (Temp Number / Email Card) -->
+    <!-- 1. Temp Mail Hero Card with Plus-Addressing -->
     <section id="hero-card" class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm mb-8 text-center relative overflow-hidden">
-      <!-- Decorative subtle background accent -->
+      <!-- Decorative subtle background accents -->
       <div class="absolute -top-24 -right-24 w-60 h-60 bg-emerald-50 rounded-full blur-3xl pointer-events-none -z-0"></div>
-      <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-blue-50 rounded-full blur-3xl pointer-events-none -z-0"></div>
+      <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-teal-50 rounded-full blur-3xl pointer-events-none -z-0"></div>
 
       <div class="relative z-10 max-w-3xl mx-auto">
         
-        <!-- Live Status Indicator -->
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-4 shadow-2xs">
+        <!-- Private Session Status Pill -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-4 shadow-2xs">
           <span class="relative flex h-2.5 w-2.5">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
           </span>
-          <span id="live-status-text">Status: Live &amp; Listening</span>
+          <span id="live-status-text">Waiting for incoming emails...</span>
         </div>
 
-        <!-- Temp Address & Big Copy Button -->
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 my-2">
-          <!-- Active Address Box -->
+        <!-- Generated Unique Alias Display & Primary Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 my-2">
+          
+          <!-- Unique Email Address Box -->
           <div 
             id="active-address-container"
-            class="w-full sm:w-auto bg-slate-50 border-2 border-slate-200 hover:border-emerald-300 rounded-2xl px-5 py-3 text-slate-900 font-mono text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight transition-all select-all flex items-center justify-center min-w-[280px] sm:min-w-[340px]"
+            class="w-full sm:w-auto bg-slate-50 border-2 border-slate-200 hover:border-emerald-300 rounded-2xl px-5 py-3.5 text-slate-900 font-mono text-lg sm:text-2xl font-extrabold tracking-tight transition-all select-all flex items-center justify-center min-w-[280px] sm:min-w-[380px] shadow-2xs"
           >
-            <span id="active-address-display" class="truncate">Loading address...</span>
+            <span id="active-address-display" class="truncate">Generating private alias...</span>
           </div>
 
-          <!-- Large Prominent "Copy Address" Button -->
+          <!-- "Copy Email" Button -->
           <button 
             type="button" 
             id="copy-address-btn"
-            class="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-2xl text-base sm:text-lg transition-all shadow-md shadow-emerald-600/20 hover:shadow-lg flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            class="w-full sm:w-auto px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-2xl text-sm sm:text-base transition-all shadow-md shadow-emerald-600/20 hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
           >
             <svg id="copy-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
             </svg>
-            <span id="copy-btn-text">Copy Address</span>
+            <span id="copy-btn-text">Copy Email</span>
           </button>
+
+          <!-- "Change / New Address" Button -->
+          <button 
+            type="button" 
+            id="change-address-btn"
+            class="w-full sm:w-auto px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl text-sm sm:text-base transition-colors border border-slate-300 flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-2xs"
+            title="Generate a new random email address and start a fresh session"
+          >
+            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>Change / New Address</span>
+          </button>
+
         </div>
 
-        <!-- Subtext -->
-        <p class="text-sm text-slate-600 mt-3 font-normal max-w-xl mx-auto">
-          Use this address to receive verification codes and OTPs. Messages arrive automatically without manual refresh.
-        </p>
+        <!-- Privacy & Plus-Addressing Explainer Badge -->
+        <div class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-600 font-medium max-w-xl mx-auto">
+          <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+          <span>Private Session Active: Only emails sent to your unique alias appear here. Other users cannot see your messages.</span>
+        </div>
 
         <!-- Dynamic Countdown & Refresh Progress Bar -->
         <div class="mt-5 flex flex-col items-center justify-center gap-2">
@@ -181,39 +199,23 @@
 
         <!-- Secondary Quick Actions -->
         <div class="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs">
-          <!-- Reset / Start Over Button -->
+          <!-- Refresh Inbox Now Button -->
           <button 
             type="button" 
-            id="reset-session-btn" 
-            class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+            id="manual-refresh-btn" 
+            class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
           >
-            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg id="manual-refresh-icon" class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
-            <span>Reset Session</span>
+            <span>Refresh Inbox</span>
           </button>
 
-          <!-- Toggle View Mode: Session Only vs All Inbox -->
-          <button 
-            type="button" 
-            id="toggle-mode-btn" 
-            class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <span id="toggle-mode-icon">⏱️</span>
-            <span id="toggle-mode-text">Showing: Fresh Session Only (Last 2m)</span>
-          </button>
-
-          <!-- Manual Refresh Now Button -->
-          <button 
-            type="button" 
-            id="manual-check-btn" 
-            class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
-          >
-            <svg id="manual-check-icon" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            <span>Check Now</span>
-          </button>
+          <!-- Current Session Tag Label -->
+          <div class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl font-mono text-xs flex items-center gap-1.5 border border-slate-200">
+            <span class="text-slate-400">Alias Tag:</span>
+            <span id="current-tag-display" class="font-bold text-slate-900">--</span>
+          </div>
         </div>
 
       </div>
@@ -222,13 +224,13 @@
     <!-- Global Alert Box -->
     <div id="alert-box" class="hidden mb-6 p-4 rounded-xl border text-sm transition-all"></div>
 
-    <!-- 2. SMS-Style Live Messages Feed Section -->
+    <!-- 2. Live Messages Feed Section -->
     <section class="mb-10">
       
       <!-- Feed Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div class="flex items-center gap-2.5">
-          <h2 class="text-xl font-bold text-slate-900 tracking-tight" id="feed-title">Incoming Verification Messages</h2>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight" id="feed-title">Inbox Messages</h2>
           <span id="feed-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
             0 received
           </span>
@@ -239,7 +241,7 @@
           <input 
             type="text" 
             id="feed-filter-input" 
-            placeholder="Search code, service, text..." 
+            placeholder="Search sender, code, text..." 
             class="w-full px-3 py-2 pl-8 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-800 placeholder-slate-400 shadow-2xs"
           />
           <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,15 +250,15 @@
         </div>
       </div>
 
-      <!-- SMS-Style Table / Feed Container -->
+      <!-- Messages Table / Feed Container -->
       <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         
         <!-- Table Header (Desktop View) -->
         <div class="hidden md:grid grid-cols-12 gap-4 px-6 py-3.5 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
-          <div class="col-span-3">Sender / Service</div>
-          <div class="col-span-3">Verification Code (OTP)</div>
-          <div class="col-span-4">Message Snippet</div>
-          <div class="col-span-2 text-right">Time &amp; Actions</div>
+          <div class="col-span-3">Sender &amp; Service</div>
+          <div class="col-span-3">Extracted OTP / Code</div>
+          <div class="col-span-4">Subject &amp; Message Snippet</div>
+          <div class="col-span-2 text-right">Time &amp; Full View</div>
         </div>
 
         <!-- 3. Empty State: Sleek Animated Radar Pulse -->
@@ -268,20 +270,20 @@
             <!-- Center Icon -->
             <div class="relative z-10 w-14 h-14 bg-emerald-50 border-2 border-emerald-400 text-emerald-600 rounded-full flex items-center justify-center shadow-md">
               <svg class="w-7 h-7 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
               </svg>
             </div>
           </div>
-          <h3 class="text-lg font-bold text-slate-900 mb-1">Waiting for incoming verification code...</h3>
+          <h3 class="text-lg font-bold text-slate-900 mb-1">Waiting for incoming emails...</h3>
           <p class="text-sm text-slate-500 max-w-md mx-auto mb-4">
-            Send an SMS/email verification code to your active address above. New messages will appear instantly in this feed.
+            Send an email or verification code to your unique alias above. Messages addressed specifically to you will appear here instantly.
           </p>
           <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-600">
             <svg class="animate-spin w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
-            <span>Live listener active &bull; Checking every 4s</span>
+            <span>Live listener active &bull; Auto-polling every 4s</span>
           </div>
         </div>
 
@@ -294,7 +296,7 @@
           </div>
           <h3 class="text-lg font-bold text-slate-900 mb-1">Gmail IMAP Not Configured</h3>
           <p class="text-sm text-slate-500 max-w-md mx-auto mb-5">
-            To start receiving verification codes, enter your Gmail address and 16-character App Password on the admin setup page.
+            To start receiving Temp Mail and verification codes, enter your base Gmail address and 16-character App Password on the admin setup page.
           </p>
           <a 
             href="/admin" 
@@ -315,18 +317,18 @@
 
   </main>
 
-  <!-- Modal: View Full Message Details -->
+  <!-- Modal: View Full Email Details -->
   <div id="message-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200">
     <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden transform transition-all">
       
       <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
         <div class="flex items-center gap-3">
-          <div id="modal-service-badge" class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm bg-slate-200 text-slate-800 border border-slate-300">
-            SMS
+          <div id="modal-service-badge" class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm bg-slate-200 text-slate-800 border border-slate-300">
+            EM
           </div>
           <div>
-            <h3 id="modal-service-name" class="font-bold text-slate-900 text-base leading-tight">Service Details</h3>
+            <h3 id="modal-service-name" class="font-bold text-slate-900 text-base leading-tight">Email Details</h3>
             <p id="modal-time-label" class="text-xs text-slate-500 font-mono">Received Just now</p>
           </div>
         </div>
@@ -345,7 +347,7 @@
         <!-- Detected OTP Callout Banner -->
         <div id="modal-otp-banner" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 block mb-1">Detected OTP / Security Code:</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 block mb-1">Extracted Verification Code (OTP):</span>
             <span id="modal-otp-code" class="font-mono text-3xl font-extrabold text-slate-900 tracking-widest bg-white px-3 py-1 rounded-lg border border-amber-200 shadow-2xs select-all">
               ------
             </span>
@@ -362,7 +364,7 @@
           </button>
         </div>
 
-        <!-- Subject & Sender Info -->
+        <!-- Subject, Sender, and Recipient Info -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Subject:</span>
@@ -371,6 +373,10 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px]">From:</span>
             <span id="modal-from" class="font-mono text-slate-700 sm:text-right break-words">sender@domain.com</span>
+          </div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Delivered To:</span>
+            <span id="modal-to" class="font-mono text-emerald-700 font-semibold sm:text-right break-words">user+alias@gmail.com</span>
           </div>
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Date / Time:</span>
@@ -422,39 +428,38 @@
 
   <!-- Footer -->
   <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500 mt-auto">
-    Temp Number &amp; SMS Live Catch &bull; Gmail IMAP Verification Service &bull; Auto-refreshes every 4s
+    Temp Mail &bull; Private Gmail Plus-Addressing Session &bull; Auto-polling every 4s
   </footer>
 
   <!-- Application Logic -->
   <script>
     // State management
-    let activeAddress = '';
+    let baseGmailAddress = '';
+    let currentAlias = '';
+    let currentTag = '';
+    let sessionTimestamp = Date.now();
     let isConfigured = false;
-    let sessionTimestamp = Date.now() - 120000; // default to last 2 minutes
-    let viewMode = 'session'; // 'session' (time-filtered) or 'all'
     let knownUids = new Set();
     let currentEmails = [];
     let soundEnabled = true;
 
-    // Countdown timer constants
+    // Polling constants
     const REFRESH_CYCLE_MS = 4000;
     let cycleTimeRemaining = REFRESH_CYCLE_MS;
     let countdownInterval = null;
-    let pollingActive = true;
 
     // DOM Elements
     const activeAddressDisplay = document.getElementById('active-address-display');
     const copyAddressBtn = document.getElementById('copy-address-btn');
     const copyBtnText = document.getElementById('copy-btn-text');
     const copyIcon = document.getElementById('copy-icon');
+    const changeAddressBtn = document.getElementById('change-address-btn');
+    const currentTagDisplay = document.getElementById('current-tag-display');
     const countdownLabel = document.getElementById('countdown-label');
     const countdownProgressBar = document.getElementById('countdown-progress-bar');
     const sessionTimestampLabel = document.getElementById('session-timestamp-label');
-    const resetSessionBtn = document.getElementById('reset-session-btn');
-    const toggleModeBtn = document.getElementById('toggle-mode-btn');
-    const toggleModeText = document.getElementById('toggle-mode-text');
-    const manualCheckBtn = document.getElementById('manual-check-btn');
-    const manualCheckIcon = document.getElementById('manual-check-icon');
+    const manualRefreshBtn = document.getElementById('manual-refresh-btn');
+    const manualRefreshIcon = document.getElementById('manual-refresh-icon');
     const soundToggleBtn = document.getElementById('sound-toggle-btn');
     const soundIcon = document.getElementById('sound-icon');
     const soundText = document.getElementById('sound-text');
@@ -476,9 +481,9 @@
     const modalOtpBanner = document.getElementById('modal-otp-banner');
     const modalOtpCode = document.getElementById('modal-otp-code');
     const modalCopyOtpBtn = document.getElementById('modal-copy-otp-btn');
-    const modalCopyOtpLabel = document.getElementById('modal-copy-otp-label');
     const modalSubject = document.getElementById('modal-subject');
     const modalFrom = document.getElementById('modal-from');
+    const modalTo = document.getElementById('modal-to');
     const modalExactDate = document.getElementById('modal-exact-date');
     const modalBodyText = document.getElementById('modal-body-text');
     const modalUidLabel = document.getElementById('modal-uid-label');
@@ -553,6 +558,21 @@
       }
     });
 
+    // Helper: Generate random 5-character alphanumeric ID (e.g., usr8492)
+    function generateRandomTag() {
+      const rand = Math.random().toString(36).substring(2, 7);
+      return `usr${rand}`;
+    }
+
+    // Helper: Construct alias from base email and tag
+    function makeAlias(baseEmail, tag) {
+      if (!baseEmail || !baseEmail.includes('@')) return '';
+      const parts = baseEmail.split('@');
+      const localPart = parts[0].split('+')[0]; // strip any existing plus tag
+      const domain = parts[1];
+      return `${localPart}+${tag}@${domain}`;
+    }
+
     // Copy to clipboard helper
     async function copyToClipboard(text, feedbackBtn, successLabel = 'Copied!') {
       try {
@@ -622,10 +642,10 @@
         .replace(/'/g, '&#039;');
     }
 
-    // Render SMS-style message row / card
+    // Render message row
     function renderMessageRow(email, isBrandNew = false) {
       const timeInfo = formatRelativeTime(email.date);
-      const service = email.service || { name: 'Service', bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'SMS' };
+      const service = email.service || { name: 'Service', bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'EM' };
 
       const row = document.createElement('div');
       row.className = `p-4 sm:px-6 hover:bg-slate-50/80 transition-all ${isBrandNew ? 'animate-arrival-flash bg-emerald-50/40' : ''}`;
@@ -650,7 +670,7 @@
           </button>
         </div>
       ` : `
-        <span class="text-xs text-slate-400 italic">No OTP detected</span>
+        <span class="text-xs text-slate-400 italic">No code extracted</span>
       `;
 
       // Clean snippet preview
@@ -659,7 +679,7 @@
       row.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 items-center">
           
-          <!-- Col 1: Sender / Service -->
+          <!-- Col 1: Sender & Service -->
           <div class="col-span-1 md:col-span-3 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-sm border shadow-2xs shrink-0 ${service.bg}">
               ${escapeHtml(service.icon)}
@@ -677,12 +697,12 @@
             </div>
           </div>
 
-          <!-- Col 2: OTP / Verification Code -->
+          <!-- Col 2: Extracted OTP / Code -->
           <div class="col-span-1 md:col-span-3">
             ${otpSnippet}
           </div>
 
-          <!-- Col 3: Message Snippet -->
+          <!-- Col 3: Subject & Message Snippet -->
           <div class="col-span-1 md:col-span-4 min-w-0">
             <h4 class="text-xs font-bold text-slate-800 truncate mb-0.5">
               ${escapeHtml(email.subject || '(No Subject)')}
@@ -703,13 +723,13 @@
               </div>
             </div>
 
-            <!-- "View Full Message" Button -->
+            <!-- "View Full Email" Button -->
             <button 
               type="button" 
               onclick="openModal(${email.uid})"
               class="px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer shrink-0"
             >
-              <span>View Full Message</span>
+              <span>View Full Email</span>
               <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
               </svg>
@@ -759,7 +779,7 @@
       const email = currentEmails.find(e => String(e.uid) === String(uid));
       if (!email) return;
 
-      const service = email.service || { name: 'Service', bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'SMS' };
+      const service = email.service || { name: 'Email', bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'EM' };
       const timeInfo = formatRelativeTime(email.date);
 
       modalServiceBadge.className = `w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm border ${service.bg}`;
@@ -777,6 +797,7 @@
 
       modalSubject.textContent = email.subject || '(No Subject)';
       modalFrom.textContent = email.fromAddress ? `${email.from} <${email.fromAddress}>` : email.from;
+      modalTo.textContent = email.to || currentAlias;
       modalExactDate.textContent = new Date(email.date).toLocaleString();
       modalBodyText.textContent = email.bodyText || email.snippet || '(Empty body)';
       modalUidLabel.textContent = `UID: ${email.uid}`;
@@ -802,27 +823,28 @@
       }
     });
 
-    // Fetch emails from backend
+    // Fetch emails strictly for this user's unique alias & session
     async function fetchMessages(silent = false) {
-      if (!isConfigured) return;
+      if (!isConfigured || !currentAlias) return;
 
       if (!silent) {
-        manualCheckIcon.classList.add('animate-spin');
+        manualRefreshIcon.classList.add('animate-spin');
       }
 
       try {
-        let url = '/api/emails?limit=25';
-        if (viewMode === 'session' && sessionTimestamp) {
-          url += `&since=${sessionTimestamp}`;
-        }
+        const params = new URLSearchParams({
+          alias: currentAlias,
+          since: sessionTimestamp,
+          limit: '25'
+        });
 
-        const res = await fetch(url);
+        const res = await fetch(`/api/emails?${params.toString()}`);
         const data = await res.json();
 
         if (res.ok && data.success) {
           const fetched = data.emails || [];
 
-          // Detect newly arrived messages
+          // Check for newly arrived messages
           let newCount = 0;
           fetched.forEach(item => {
             if (!knownUids.has(item.uid)) {
@@ -833,7 +855,7 @@
 
           if (newCount > 0 && currentEmails.length > 0) {
             playArrivalChime();
-            showToast(`New verification code arrived! (${newCount} new)`, '🔔');
+            showToast(`New email received! (${newCount} new)`, '🔔');
           }
 
           currentEmails = fetched;
@@ -848,7 +870,7 @@
       } catch (err) {
         console.warn('Fetch messages error:', err);
       } finally {
-        manualCheckIcon.classList.remove('animate-spin');
+        manualRefreshIcon.classList.remove('animate-spin');
       }
     }
 
@@ -863,7 +885,7 @@
 
         if (cycleTimeRemaining <= 0) {
           cycleTimeRemaining = REFRESH_CYCLE_MS;
-          countdownLabel.textContent = 'Checking IMAP...';
+          countdownLabel.textContent = 'Checking inbox...';
           countdownProgressBar.style.width = '100%';
           fetchMessages(true);
         } else {
@@ -875,15 +897,44 @@
       }, 100);
     }
 
-    // 1. Copy Address button trigger
+    // Generate and activate a new session alias
+    function setupAlias(createNew = false) {
+      let savedTag = localStorage.getItem('tempmail_tag');
+      let savedTimestamp = localStorage.getItem('tempmail_session_start');
+
+      if (createNew || !savedTag) {
+        savedTag = generateRandomTag();
+        savedTimestamp = Date.now().toString();
+        localStorage.setItem('tempmail_tag', savedTag);
+        localStorage.setItem('tempmail_session_start', savedTimestamp);
+      }
+
+      currentTag = savedTag;
+      sessionTimestamp = parseInt(savedTimestamp, 10) || Date.now();
+      currentAlias = makeAlias(baseGmailAddress, currentTag);
+
+      // Update UI displays
+      activeAddressDisplay.textContent = currentAlias || 'Configuring...';
+      currentTagDisplay.textContent = `+${currentTag}`;
+      sessionTimestampLabel.textContent = `Session started at ${new Date(sessionTimestamp).toLocaleTimeString()}`;
+
+      // Reset inbox state
+      currentEmails = [];
+      knownUids.clear();
+      renderFeed();
+
+      // Reset timer
+      cycleTimeRemaining = REFRESH_CYCLE_MS;
+    }
+
+    // 1. "Copy Email" Button
     copyAddressBtn.addEventListener('click', async () => {
-      if (!activeAddress) {
+      if (!currentAlias) {
         showToast('Please configure Gmail in Admin first', '⚠️');
         return;
       }
 
-      // a) Copy address with green checkmark
-      await copyToClipboard(activeAddress, null);
+      await copyToClipboard(currentAlias, null);
 
       // Visual feedback on button
       copyBtnText.textContent = 'Copied!';
@@ -892,61 +943,27 @@
       copyAddressBtn.classList.add('bg-emerald-700');
 
       setTimeout(() => {
-        copyBtnText.textContent = 'Copy Address';
+        copyBtnText.textContent = 'Copy Email';
         copyIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>';
         copyAddressBtn.classList.remove('bg-emerald-700');
         copyAddressBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
       }, 2400);
 
-      // b) Reset session timestamp to right now
-      sessionTimestamp = Date.now();
-      viewMode = 'session';
-      toggleModeText.textContent = 'Showing: Fresh Session Only (Live)';
-      sessionTimestampLabel.textContent = `Session started at ${new Date(sessionTimestamp).toLocaleTimeString()}`;
+      showToast(`Copied ${currentAlias}! Ready for verification codes.`, '⚡');
+    });
 
-      // c) Clear old messages from view and arm live listener
-      currentEmails = [];
-      knownUids.clear();
-      renderFeed();
-      showToast('Address copied & listening for new codes!', '⚡');
+    // 2. "Change / New Address" Button
+    changeAddressBtn.addEventListener('click', () => {
+      setupAlias(true);
+      showToast(`Generated new private alias: +${currentTag}`, '✨');
+      fetchMessages(false);
+    });
 
-      // Refresh immediately
+    // 3. "Refresh Inbox" Manual Button
+    manualRefreshBtn.addEventListener('click', () => {
       cycleTimeRemaining = REFRESH_CYCLE_MS;
       fetchMessages(false);
-    });
-
-    // Reset Session Button
-    resetSessionBtn.addEventListener('click', () => {
-      sessionTimestamp = Date.now();
-      currentEmails = [];
-      knownUids.clear();
-      renderFeed();
-      sessionTimestampLabel.textContent = `Session reset at ${new Date(sessionTimestamp).toLocaleTimeString()}`;
-      showToast('Session reset. Ready for incoming verification code.', '🔄');
-      fetchMessages(false);
-    });
-
-    // Toggle Mode: Fresh Session Only vs Show All Inbox
-    toggleModeBtn.addEventListener('click', () => {
-      if (viewMode === 'session') {
-        viewMode = 'all';
-        toggleModeText.textContent = 'Showing: All Inbox Messages';
-        toggleModeIcon.textContent = '📥';
-        showToast('Switched to All Inbox view', '📥');
-      } else {
-        viewMode = 'session';
-        sessionTimestamp = Date.now() - 120000;
-        toggleModeText.textContent = 'Showing: Fresh Session Only (Last 2m)';
-        toggleModeIcon.textContent = '⏱️';
-        showToast('Switched to Fresh Session view', '⏱️');
-      }
-      fetchMessages(false);
-    });
-
-    // Manual Check Now Button
-    manualCheckBtn.addEventListener('click', () => {
-      cycleTimeRemaining = REFRESH_CYCLE_MS;
-      fetchMessages(false);
+      showToast('Checking for new emails...', '🔄');
     });
 
     // Initialization
@@ -957,16 +974,15 @@
 
         if (config.configured && config.user) {
           isConfigured = true;
-          activeAddress = config.user;
-          activeAddressDisplay.textContent = config.user;
+          baseGmailAddress = config.user;
 
           unconfiguredState.classList.add('hidden');
           radarEmptyState.classList.remove('hidden');
 
-          sessionTimestamp = Date.now() - 120000;
-          sessionTimestampLabel.textContent = `Listening for messages received since ${new Date(sessionTimestamp).toLocaleTimeString()}`;
+          // Initialize or restore alias session
+          setupAlias(false);
 
-          // Fetch initial session messages
+          // Initial fetch
           await fetchMessages(false);
 
           // Start 4-second continuous countdown engine
@@ -977,6 +993,8 @@
           unconfiguredState.classList.remove('hidden');
           radarEmptyState.classList.add('hidden');
           copyAddressBtn.disabled = true;
+          changeAddressBtn.disabled = true;
+          manualRefreshBtn.disabled = true;
         }
       } catch (err) {
         console.error('Init error:', err);

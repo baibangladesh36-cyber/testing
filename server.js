@@ -162,8 +162,89 @@ function extractOtp(text, subject) {
   return null;
 }
 
-// Helper: Fetch latest emails using ImapFlow + mailparser (with optional time filter)
-async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
+// Helper: Match recipient against requested Gmail alias (Plus-addressing / Delivered-To / To)
+function matchRecipientAlias(parsed, envelope, targetAlias) {
+  if (!targetAlias || !targetAlias.trim()) {
+    return true; // No alias filtering requested
+  }
+
+  const cleanTarget = targetAlias.trim().toLowerCase();
+  // Extract the plus tag if present (e.g., "base+usr8492@gmail.com" -> "usr8492")
+  const plusTagMatch = cleanTarget.match(/\+([^@]+)@/);
+  const targetTag = plusTagMatch ? plusTagMatch[1].toLowerCase() : null;
+
+  const recipientStrings = [];
+
+  // 1. Envelope to / cc
+  if (envelope?.to && Array.isArray(envelope.to)) {
+    for (const t of envelope.to) {
+      if (t.address) recipientStrings.push(t.address.toLowerCase());
+    }
+  }
+  if (envelope?.cc && Array.isArray(envelope.cc)) {
+    for (const c of envelope.cc) {
+      if (c.address) recipientStrings.push(c.address.toLowerCase());
+    }
+  }
+
+  // 2. Parsed to / cc
+  if (parsed.to) {
+    if (parsed.to.text) recipientStrings.push(parsed.to.text.toLowerCase());
+    if (Array.isArray(parsed.to.value)) {
+      for (const v of parsed.to.value) {
+        if (v.address) recipientStrings.push(v.address.toLowerCase());
+      }
+    }
+  }
+  if (parsed.cc) {
+    if (parsed.cc.text) recipientStrings.push(parsed.cc.text.toLowerCase());
+    if (Array.isArray(parsed.cc.value)) {
+      for (const v of parsed.cc.value) {
+        if (v.address) recipientStrings.push(v.address.toLowerCase());
+      }
+    }
+  }
+
+  // 3. Specific Gmail headers: Delivered-To, X-Original-To, Envelope-To, X-Forwarded-To
+  if (parsed.headers && typeof parsed.headers.get === 'function') {
+    const deliveredTo = parsed.headers.get('delivered-to');
+    if (deliveredTo) {
+      if (Array.isArray(deliveredTo)) {
+        deliveredTo.forEach(d => recipientStrings.push(String(d).toLowerCase()));
+      } else {
+        recipientStrings.push(String(deliveredTo).toLowerCase());
+      }
+    }
+
+    const xOriginalTo = parsed.headers.get('x-original-to');
+    if (xOriginalTo) recipientStrings.push(String(xOriginalTo).toLowerCase());
+
+    const envelopeTo = parsed.headers.get('envelope-to');
+    if (envelopeTo) recipientStrings.push(String(envelopeTo).toLowerCase());
+
+    const xForwardedTo = parsed.headers.get('x-forwarded-to');
+    if (xForwardedTo) recipientStrings.push(String(xForwardedTo).toLowerCase());
+  }
+
+  const combinedRecipients = recipientStrings.join(' ');
+
+  // A. Exact alias check (e.g., "myemail+usr8492@gmail.com")
+  if (combinedRecipients.includes(cleanTarget)) {
+    return true;
+  }
+
+  // B. Specific plus-tag check (e.g., "+usr8492@" or "+usr8492")
+  if (targetTag) {
+    if (combinedRecipients.includes(`+${targetTag}@`) || combinedRecipients.includes(`+${targetTag}`)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// Helper: Fetch latest emails using ImapFlow + mailparser (with optional time & alias filter)
+async function fetchLatestEmails(limit = 10, sinceTimestamp = null, targetAlias = null) {
   if (!currentConfig.user || !currentConfig.pass) {
     throw new Error('IMAP credentials not configured. Please configure your Gmail account at /admin.');
   }
@@ -189,8 +270,9 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
     const total = client.mailbox.exists || 0;
 
     if (total > 0) {
-      // When time-filtering, check a larger window of recent messages (up to 25)
-      const fetchCount = sinceTimestamp ? Math.max(limit, 25) : limit;
+      // When filtering by alias or timestamp, scan a larger batch (up to 40 recent messages)
+      const isFiltered = Boolean(sinceTimestamp || targetAlias);
+      const fetchCount = isFiltered ? Math.max(limit, 40) : limit;
       const startSeq = Math.max(1, total - fetchCount + 1);
       const range = `${startSeq}:${total}`;
 
@@ -211,13 +293,19 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
           const emailDate = parsed.date ? new Date(parsed.date) : (msg.internalDate ? new Date(msg.internalDate) : new Date());
           const emailTimeMs = emailDate.getTime();
 
-          // If filtering by timestamp, discard emails received prior to the cutoff
+          // 1. Time Filter: Discard emails received prior to the cutoff
           if (cutoffMs && emailTimeMs < cutoffMs) {
+            continue;
+          }
+
+          // 2. Alias Filter: Discard emails not addressed to this user's unique alias
+          if (targetAlias && !matchRecipientAlias(parsed, msg.envelope, targetAlias)) {
             continue;
           }
 
           const fromText = parsed.from ? (parsed.from.text || parsed.from.value?.[0]?.name || parsed.from.value?.[0]?.address || 'Unknown') : (msg.envelope?.from?.[0]?.name || msg.envelope?.from?.[0]?.address || 'Unknown');
           const fromAddress = parsed.from?.value?.[0]?.address || msg.envelope?.from?.[0]?.address || '';
+          const toAddress = parsed.to?.text || msg.envelope?.to?.[0]?.address || '';
           const subject = parsed.subject || msg.envelope?.subject || '(No Subject)';
           const date = emailDate.toISOString();
           const bodyText = (parsed.text || '').trim();
@@ -231,7 +319,7 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
             from: fromText,
             fromAddress: fromAddress,
             service: service,
-            to: parsed.to?.text || '',
+            to: toAddress,
             subject: subject,
             date: date,
             timestampMs: emailTimeMs,
@@ -242,8 +330,8 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
             html: parsed.html || null
           });
 
-          // Respect requested limit
-          if (!sinceTimestamp && emails.length >= limit) {
+          // Respect requested limit once enough matching emails are collected
+          if (emails.length >= limit) {
             break;
           }
         } catch (parseErr) {
@@ -251,6 +339,14 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
           const fallbackTimeMs = fallbackDate.getTime();
 
           if (cutoffMs && fallbackTimeMs < cutoffMs) {
+            continue;
+          }
+
+          const fallbackParsed = {
+            to: { text: msg.envelope?.to?.[0]?.address || '' }
+          };
+
+          if (targetAlias && !matchRecipientAlias(fallbackParsed, msg.envelope, targetAlias)) {
             continue;
           }
 
@@ -266,7 +362,7 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
             from: fromName,
             fromAddress: fromAddr,
             service: service,
-            to: '',
+            to: msg.envelope?.to?.[0]?.address || '',
             subject: sub,
             date: fallbackDate.toISOString(),
             timestampMs: fallbackTimeMs,
@@ -277,7 +373,7 @@ async function fetchLatestEmails(limit = 10, sinceTimestamp = null) {
             html: null
           });
 
-          if (!sinceTimestamp && emails.length >= limit) {
+          if (emails.length >= limit) {
             break;
           }
         }
@@ -454,14 +550,17 @@ app.get('/api/emails', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit, 10) || 10;
     const since = req.query.since ? parseInt(req.query.since, 10) : null;
+    const alias = req.query.alias ? String(req.query.alias).trim() : null;
     
-    if (since) {
+    if (alias) {
+      console.log(`[IMAP] Private Session: Fetching for alias ${alias} (since ${since ? new Date(since).toISOString() : 'all'})...`);
+    } else if (since) {
       console.log(`[IMAP] Live Catch: Fetching new emails since ${new Date(since).toISOString()} (${since}) for ${currentConfig.user}...`);
     } else {
       console.log(`[IMAP] Fetching latest ${limit} emails for ${currentConfig.user}...`);
     }
 
-    const emails = await fetchLatestEmails(limit, since);
+    const emails = await fetchLatestEmails(limit, since, alias);
     connectionState.status = 'connected';
     connectionState.lastChecked = new Date().toISOString();
     connectionState.lastError = null;
@@ -470,6 +569,8 @@ app.get('/api/emails', async (req, res) => {
       success: true,
       count: emails.length,
       user: currentConfig.user,
+      baseEmail: currentConfig.user,
+      alias: alias || null,
       host: currentConfig.host,
       since: since || null,
       serverTime: Date.now(),

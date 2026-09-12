@@ -1,6 +1,6 @@
 {
   "name": "Gmail IMAP Tester",
-  "description": "Temp Number / SMS Online style Gmail IMAP testing web application with Hero copy card, live 4s countdown, SMS verification table, instant OTP extraction badge, and time-filtered session logic.",
+  "description": "Temp-Mail service using Gmail Plus-Addressing (Aliasing) with private user sessions, unique recipient filtering, live 4s polling, instant OTP extraction, and full message modals.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
